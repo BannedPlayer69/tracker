@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171512">
+<title>Tempo</title>
+<link rel="manifest" href="./manifest.json">
+<style>
+/* ============ Base ============ */
+:root{
+  --sfondo:#171512;
+  --superficie:#211e1a;
+  --superficie2:#2a2621;
+  --bordo:#37322b;
+  --testo:#ece7dc;
+  --testo2:#a69e8f;
+  --testo3:#736c5f;
+  --crema:#e9e2d2;
+  --crema-testo:#1a1815;
+  --inv:#4fbf8b;
+  --disp:#c98a5e;
+  --grigio:#3a352e;
+  --rischio:#a34a35;
+  --avviso-sfondo:#33270f;
+  --avviso-bordo:#6b5320;
+  --avviso-testo:#e8c877;
+  --raggio:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--sfondo);color:var(--testo);
+  font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:calc(84px + env(safe-area-inset-bottom));
+}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation;user-select:none}
+input,select,textarea{
+  font:inherit;color:var(--testo);background:var(--superficie2);
+  border:1px solid var(--bordo);border-radius:10px;padding:12px 14px;min-height:48px;width:auto;
+}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--testo3);outline-offset:2px}
+main{max-width:880px;margin:0 auto;padding:20px 20px 8px}
+h2{margin:0 0 6px;font-size:21px;font-weight:650}
+.micro{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--testo3);margin:28px 4px 12px;font-weight:600}
+.pallino{width:12px;height:12px;border-radius:50%;flex:none;display:inline-block}
+.pannello{background:var(--superficie);border:1px solid var(--bordo);border-radius:var(--raggio);padding:10px 16px}
+.badge{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--testo2);border:1px solid var(--bordo);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+/* ============ Bottoni ============ */
+.btn{border-radius:14px;padding:0 22px;min-height:56px;font-size:18px;font-weight:600;border:1px solid var(--bordo);background:var(--superficie2);display:inline-flex;align-items:center;justify-content:center}
+.btn:active{filter:brightness(1.12)}
+.btn-primario{background:var(--crema);color:var(--crema-testo);border-color:var(--crema)}
+.btn-fantasma{background:transparent}
+.btn-rischio{background:transparent;color:#dfa091;border-color:#5c3b31}
+.btn-rischio-pieno{background:var(--rischio);border-color:var(--rischio);color:#f6e9e4}
+.btn-piccolo{min-height:46px;padding:0 16px;font-size:15px;font-weight:600;border-radius:10px;border:1px solid var(--bordo);background:var(--superficie2);display:inline-flex;align-items:center}
+.btn-x{width:48px;height:48px;flex:none;border-radius:10px;border:1px solid var(--bordo);color:var(--testo2);font-size:17px;display:inline-flex;align-items:center;justify-content:center}
+
+/* ============ Sessione attiva ============ */
+.card-attiva{background:var(--superficie);border:1px solid var(--bordo);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.riga-attiva{display:flex;align-items:center;gap:10px;color:var(--testo2);flex-wrap:wrap}
+.riga-attiva .etichetta{color:var(--testo);font-weight:600}
+.da-quando{margin-left:auto;font-variant-numeric:tabular-nums}
+.crono{font-size:clamp(56px,9vw,88px);font-weight:250;letter-spacing:.01em;font-variant-numeric:tabular-nums;line-height:1}
+.input-nota{width:100%}
+.azioni-attiva{display:flex;gap:12px;flex-wrap:wrap}
+
+/* ============ Avvio rapido ============ */
+.griglia-rapida{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:600px){.griglia-rapida{grid-template-columns:1fr}}
+.btn-rapido{background:var(--superficie);border:1px solid var(--bordo);border-radius:var(--raggio);min-height:112px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;text-align:left;gap:12px}
+.btn-rapido:active{background:var(--superficie2)}
+.btn-rapido .testi{display:flex;flex-direction:column;gap:2px;min-width:0}
+.btn-rapido .nome{font-size:20px;font-weight:650;overflow-wrap:anywhere}
+.btn-rapido .cat{font-size:13px;color:var(--testo2);overflow-wrap:anywhere}
+
+/* ============ Elenco categorie ============ */
+.blocco-cat{background:var(--superficie);border:1px solid var(--bordo);border-radius:var(--raggio);padding:14px 16px;margin-bottom:12px}
+button.blocco-cat{display:block;width:100%;text-align:left}
+button.blocco-cat:active{background:var(--superficie2)}
+.testa-cat{display:flex;align-items:center;gap:10px;min-height:40px}
+.testa-cat .nome{font-weight:650;font-size:18px}
+.testa-cat .tipo{margin-left:auto;font-size:11px;color:var(--testo3);letter-spacing:.1em;text-transform:uppercase}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.chip{border:1px solid var(--bordo);background:var(--superficie2);border-radius:12px;padding:12px 20px;min-height:54px;font-size:17px;display:inline-flex;align-items:center}
+.chip:active{border-color:var(--testo3)}
+.vuoto{color:var(--testo2);padding:24px 4px}
+
+/* ============ Vista giorno ============ */
+.testa-giorno{display:flex;align-items:center;gap:8px}
+.testa-giorno .data{flex:1;text-align:center;font-size:19px;font-weight:650}
+.btn-freccia{width:58px;height:58px;border-radius:12px;border:1px solid var(--bordo);background:var(--superficie);font-size:24px;display:inline-flex;align-items:center;justify-content:center;color:var(--testo2)}
+.btn-freccia:disabled{opacity:.3}
+.torna{text-align:center;margin-top:10px}
+.barra-ore{display:flex;height:26px;border-radius:999px;overflow:hidden;background:var(--grigio);margin-top:18px}
+.seg{height:100%}
+.seg-inv{background:var(--inv)}
+.seg-disp{background:var(--disp)}
+.legenda{display:flex;gap:8px 22px;flex-wrap:wrap;margin-top:12px;color:var(--testo2);font-size:14px}
+.legenda span{display:inline-flex;align-items:center}
+.legenda .pallino{width:10px;height:10px;margin-right:7px}
+.tot-riga{display:flex;align-items:center;gap:10px;padding:12px 2px;border-bottom:1px solid var(--bordo)}
+.tot-riga:last-child{border-bottom:0}
+.tot-riga .durata{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--testo2)}
+.sess{width:100%;display:flex;gap:14px;padding:14px;background:var(--superficie);border:1px solid var(--bordo);border-radius:var(--raggio);margin-bottom:10px;text-align:left;align-items:stretch}
+.sess:active{background:var(--superficie2)}
+.sess .orari{width:72px;flex:none;color:var(--testo2);font-variant-numeric:tabular-nums;font-size:14px;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+.sess .filo{width:4px;border-radius:2px;flex:none}
+.sess .corpo{flex:1;min-width:0}
+.sess .titolo{display:block;font-weight:600}
+.sess .titolo .badge{margin-left:8px;vertical-align:1px}
+.sess .sotto{display:block;color:var(--testo2);font-size:14px;margin-top:3px;overflow-wrap:anywhere}
+.sess .durata{flex:none;align-self:center;color:var(--testo2);font-variant-numeric:tabular-nums;padding-left:6px;white-space:nowrap}
+
+/* ============ Barra di navigazione ============ */
+nav#barra{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--superficie);border-top:1px solid var(--bordo);display:flex;gap:6px;padding:10px max(14px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+nav#barra .tab{flex:1;min-height:58px;border-radius:12px;font-size:17px;font-weight:600;color:var(--testo2);display:inline-flex;align-items:center;justify-content:center}
+nav#barra .tab.attiva{color:var(--testo);background:var(--superficie2)}
+nav#barra .tab-icona{flex:0 0 68px}
+
+/* ============ Banner di avviso storage ============ */
+#banner{position:sticky;top:0;z-index:40;background:var(--avviso-sfondo);color:var(--avviso-testo);border-bottom:1px solid var(--avviso-bordo);padding:12px 16px;font-size:15px;text-align:center}
+
+/* ============ Modali ============ */
+#velo{position:fixed;inset:0;background:rgba(10,9,7,.65);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+#modale{background:var(--superficie);border:1px solid var(--bordo);border-radius:20px;max-width:580px;width:100%;max-height:88vh;overflow:auto;padding:24px}
+#modale .micro:first-child{margin-top:6px}
+.sotto-titolo{color:var(--testo2);margin:0 0 18px}
+.campo{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.campo label{font-size:13px;color:var(--testo2);letter-spacing:.04em}
+.campo input,.campo select,.campo textarea{width:100%}
+.riga-bottoni{display:flex;gap:12px;justify-content:flex-end;align-items:center;margin-top:20px;flex-wrap:wrap}
+.spinta{flex:1}
+.errore{background:var(--avviso-sfondo);border:1px solid var(--avviso-bordo);color:var(--avviso-testo);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:15px}
+.avvio-scelte{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.avvio-scelte .btn{min-height:80px;text-align:center}
+@media(max-width:540px){.avvio-scelte{grid-template-columns:1fr}}
+.segmentato{display:flex;border:1px solid var(--bordo);border-radius:12px;overflow:hidden}
+.segmentato button{flex:1;min-height:52px;background:var(--superficie2);color:var(--testo2);font-size:15px;padding:0 10px}
+.segmentato button.sel{background:var(--crema);color:var(--crema-testo);font-weight:650}
+
+/* ============ Impostazioni ============ */
+.imp-cat{border:1px solid var(--bordo);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--superficie2)}
+.imp-riga{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.imp-riga input[type=text]{flex:1;min-width:150px}
+input[type=color]{padding:3px;width:48px;height:48px;min-height:48px;flex:none;background:none;border-radius:10px}
+.imp-sub{display:flex;gap:8px;align-items:center;margin-top:10px}
+.imp-sub input{flex:1;background:var(--superficie)}
+
+/* ============ Modalità concentrazione ============ */
+#focus{position:fixed;inset:0;background:var(--sfondo);z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:24px}
+#focus .contesto{color:var(--testo2);font-size:20px;display:flex;gap:12px;align-items:center}
+#focus .crono{font-size:clamp(88px,17vw,230px)}
+#focus .btn{min-width:220px}
+#focus .esci{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;width:58px;height:58px;border-radius:50%;border:1px solid var(--bordo);color:var(--testo2);font-size:20px;display:inline-flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<div id="banner" hidden></div>
+<main>
+  <section id="vista-home"></section>
+  <section id="vista-giorno" hidden></section>
+</main>
+<nav id="barra">
+  <button class="tab attiva" data-vista="home">Home</button>
+  <button class="tab" data-vista="giorno">Oggi</button>
+  <button class="tab tab-icona" data-impostazioni aria-label="Impostazioni">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <line x1="3" y1="7" x2="21" y2="7"></line><circle cx="9" cy="7" r="3" fill="var(--superficie)"></circle>
+      <line x1="3" y1="17" x2="21" y2="17"></line><circle cx="15" cy="17" r="3" fill="var(--superficie)"></circle>
+    </svg>
+  </button>
+</nav>
+<div id="focus" hidden></div>
+<div id="velo" hidden><div id="modale" role="dialog" aria-modal="true"></div></div>
+
+<script>
+'use strict';
+
+/* ================= Costanti e utilità ================= */
+const CHIAVE = 'tt_v1';
+const SEI_ORE_MS = 6 * 60 * 60 * 1000;
+const QUATTORDICI_GIORNI_MS = 14 * 24 * 60 * 60 * 1000;
+const ETICHETTA_AVVIO = { deciso: 'scelto', scivolato: 'scivolato' };
+
+const $ = (sel, radice) => (radice || document).querySelector(sel);
+
+function esc(testo) {
+  return String(testo == null ? '' : testo).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function nuovoId() {
+  return (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+function fmtCrono(ms) {
+  const tot = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(tot / 3600);
+  const m = Math.floor((tot % 3600) / 60);
+  const s = tot % 60;
+  return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function fmtDurata(ms) {
+  const min = Math.round(Math.max(0, ms) / 60000);
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return h === 0 ? (m + ' min') : (h + 'h ' + String(m).padStart(2, '0') + 'm');
+}
+
+function fmtOra(d) { return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); }
+function fmtDataBreve(d) { return d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }); }
+function stessoGiorno(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+function inizioGiorno(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function fineGiorno(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1); }
+
+function aInputDataOra(d) {
+  const p = (n) => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+    'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function aInputData(d) {
+  const p = (n) => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
+/* ================= Stato ================= */
+let stato = null;
+let statoCorrotto = false;
+let erroreSalvataggio = false;
+let vistaCorrente = 'home';
+let giornoVista = new Date();
+let avvisoVecchioMostrato = false;
+let secondi = 0;
+
+function statoDefault() {
+  const idStudio = nuovoId(), idCrescita = nuovoId(), idGaming = nuovoId(), idFeed = nuovoId();
+  return {
+    schemaVersion: 1,
+    categorie: [
+      { id: idStudio,   nome: 'Studio uni',                    colore: '#5b8def', tipo: 'investimento' },
+      { id: idCrescita, nome: 'Crescita personale',            colore: '#4fbf8b', tipo: 'investimento' },
+      { id: idGaming,   nome: 'Gaming',                        colore: '#b07ce8', tipo: 'dispersione' },
+      { id: idFeed,     nome: 'Feed — shorts, reels, scroll',  colore: '#e0a458', tipo: 'dispersione' }
+    ],
+    sottocategorie: [
+      { id: nuovoId(), categoriaId: idStudio,   nome: 'C++' },
+      { id: nuovoId(), categoriaId: idStudio,   nome: 'Analisi' },
+      { id: nuovoId(), categoriaId: idCrescita, nome: 'Matematica' },
+      { id: nuovoId(), categoriaId: idCrescita, nome: 'Sport' },
+      { id: nuovoId(), categoriaId: idCrescita, nome: 'Lettura' },
+      { id: nuovoId(), categoriaId: idCrescita, nome: 'Progetti' }
+    ],
+    sessioni: [],
+    impostazioni: { oreSveglio: 16, dataInizioPercorso: new Date().toISOString() }
+  };
+}
+
+function carica() {
+  let grezzo = null;
+  try {
+    grezzo = localStorage.getItem(CHIAVE);
+  } catch (err) {
+    // Storage non disponibile: si lavora in memoria e lo si segnala.
+    stato = statoDefault();
+    erroreSalvataggio = true;
+    return;
+  }
+  if (grezzo === null) { stato = statoDefault(); salva(); return; }
+  try {
+    const dati = JSON.parse(grezzo);
+    const valido = dati && dati.schemaVersion === 1 &&
+      Array.isArray(dati.categorie) && Array.isArray(dati.sottocategorie) &&
+      Array.isArray(dati.sessioni) && dati.impostazioni && typeof dati.impostazioni === 'object';
+    if (!valido) throw new Error('schema non valido');
+    stato = dati;
+  } catch (err) {
+    statoCorrotto = true;
+    mostraRecupero(grezzo);
+  }
+}
+
+function salva() {
+  if (statoCorrotto) return;
+  try {
+    localStorage.setItem(CHIAVE, JSON.stringify(stato));
+    if (erroreSalvataggio) { erroreSalvataggio = false; rendiBanner(); }
+  } catch (err) {
+    erroreSalvataggio = true;
+    rendiBanner();
+  }
+}
+
+/* ================= Ricerche ================= */
+const trovaCat = (id) => stato.categorie.find((c) => c.id === id) || null;
+const trovaSub = (id) => stato.sottocategorie.find((s) => s.id === id) || null;
+const sottoDi = (catId) => stato.sottocategorie.filter((s) => s.categoriaId === catId);
+const sessioneAttiva = () => stato.sessioni.find((s) => s.fine === null) || null;
+const nSessioniCat = (catId) => stato.sessioni.filter((s) => s.categoriaId === catId).length;
+const nSessioniSub = (subId) => stato.sessioni.filter((s) => s.sottocategoriaId === subId).length;
+
+function etichettaSessione(s) {
+  const cat = trovaCat(s.categoriaId);
+  const sub = s.sottocategoriaId ? trovaSub(s.sottocategoriaId) : null;
+  const nomeCat = cat ? cat.nome : 'Categoria eliminata';
+  return sub ? nomeCat + ' · ' + sub.nome : nomeCat;
+}
+
+/* ================= Azioni sul timer ================= */
+function avviaSessione(categoriaId, sottocategoriaId, avvio) {
+  const adesso = new Date().toISOString();
+  const attiva = sessioneAttiva();
+  if (attiva) attiva.fine = adesso; // cambio rapido: la sessione in corso si chiude qui
+  stato.sessioni.push({
+    id: nuovoId(),
+    inizio: adesso,
+    fine: null,
+    categoriaId: categoriaId,
+    sottocategoriaId: sottocategoriaId || null,
+    avvio: avvio || null,
+    nota: ''
+  });
+  salva();
+  rendi();
+}
+
+function fermaSessione() {
+  const attiva = sessioneAttiva();
+  if (!attiva) return;
+  attiva.fine = new Date().toISOString();
+  salva();
+  chiudiFocus();
+  rendi();
+}
+
+function richiediAvvio(categoriaId, sottocategoriaId) {
+  const cat = trovaCat(categoriaId);
+  if (!cat) return;
+  if (cat.tipo === 'dispersione') apriModaleAvvio(cat, sottocategoriaId || null);
+  else avviaSessione(categoriaId, sottocategoriaId || null, null);
+}
+
+/* ================= Sovrapposizioni e ritagli giornalieri ================= */
+function trovaSovrapposizione(iniMs, finMs, escludiId) {
+  const adesso = Date.now();
+  for (const s of stato.sessioni) {
+    if (s.id === escludiId) continue;
+    const a = Date.parse(s.inizio);
+    const b = s.fine ? Date.parse(s.fine) : adesso;
+    if (iniMs < b && finMs > a) return s;
+  }
+  return null;
+}
+
+function messaggioConflitto(conflitto) {
+  const cIni = new Date(conflitto.inizio);
+  const cFin = conflitto.fine ? fmtOra(new Date(conflitto.fine)) : 'in corso';
+  return 'Si sovrappone a "' + etichettaSessione(conflitto) + '" del ' +
+    fmtDataBreve(cIni) + ' (' + fmtOra(cIni) + ' – ' + cFin + ').';
+}
+
+// Una sessione resta unica nel modello: qui viene solo ritagliata
+// sulla finestra del giorno richiesto, per timeline e conteggi.
+function ritagliGiorno(giorno) {
+  const ini = inizioGiorno(giorno).getTime();
+  const fin = fineGiorno(giorno).getTime();
+  const adesso = Date.now();
+  const out = [];
+  for (const s of stato.sessioni) {
+    const sIni = Date.parse(s.inizio);
+    const sFin = s.fine ? Date.parse(s.fine) : adesso;
+    const da = Math.max(sIni, ini);
+    const fino = Math.min(sFin, fin);
+    if (fino <= da) continue;
+    out.push({
+      sessione: s,
+      da: da,
+      fino: fino,
+      iniziataPrima: sIni < ini,
+      continuaDopo: (s.fine !== null && sFin > fin) || (s.fine === null && adesso >= fin),
+      inCorso: s.fine === null && adesso < fin
+    });
+  }
+  out.sort((x, y) => x.da - y.da);
+  return out;
+}
+
+/* ================= Avvio rapido ================= */
+function chiaveUnita(catId, subId) { return catId + '|' + (subId || ''); }
+
+function unitaQuickStart() {
+  const soglia = Date.now() - QUATTORDICI_GIORNI_MS;
+  const adesso = Date.now();
+  const totali = new Map();
+  for (const s of stato.sessioni) {
+    const ini = Date.parse(s.inizio);
+    if (ini < soglia) continue;
+    if (!trovaCat(s.categoriaId)) continue;
+    if (s.sottocategoriaId && !trovaSub(s.sottocategoriaId)) continue;
+    const fin = s.fine ? Date.parse(s.fine) : adesso;
+    const k = chiaveUnita(s.categoriaId, s.sottocategoriaId);
+    totali.set(k, (totali.get(k) || 0) + Math.max(0, fin - ini));
+  }
+  const scelte = [...totali.entries()].sort((x, y) => y[1] - x[1]).map((e) => e[0]).slice(0, 3);
+  if (scelte.length < 3) {
+    for (const sub of stato.sottocategorie) {
+      const k = chiaveUnita(sub.categoriaId, sub.id);
+      if (!scelte.includes(k)) scelte.push(k);
+      if (scelte.length === 3) break;
+    }
+  }
+  if (scelte.length < 3) {
+    for (const cat of stato.categorie) {
+      if (sottoDi(cat.id).length > 0) continue;
+      const k = chiaveUnita(cat.id, null);
+      if (!scelte.includes(k)) scelte.push(k);
+      if (scelte.length === 3) break;
+    }
+  }
+  return scelte.slice(0, 3);
+}
+
+/* ================= Render ================= */
+function rendi() {
+  if (statoCorrotto) return;
+  rendiBanner();
+  rendiHome();
+  rendiGiorno();
+  rendiFocus();
+  $('#vista-home').hidden = vistaCorrente !== 'home';
+  $('#vista-giorno').hidden = vistaCorrente !== 'giorno';
+  document.querySelectorAll('#barra [data-vista]').forEach((b) => {
+    b.classList.toggle('attiva', b.dataset.vista === vistaCorrente);
+  });
+}
+
+function rendiBanner() {
+  const el = $('#banner');
+  if (erroreSalvataggio) {
+    el.hidden = false;
+    el.textContent = 'Impossibile salvare i dati: memoria del browser piena o non disponibile. Le modifiche recenti potrebbero andare perse.';
+  } else {
+    el.hidden = true;
+  }
+}
+
+function rendiHome() {
+  const el = $('#vista-home');
+  const attiva = sessioneAttiva();
+  let html = '';
+
+  if (attiva) {
+    const cat = trovaCat(attiva.categoriaId);
+    const colore = cat ? cat.colore : '#888';
+    const badge = attiva.avvio ? ' <span class="badge">' + esc(ETICHETTA_AVVIO[attiva.avvio] || attiva.avvio) + '</span>' : '';
+    const btnFocus = (cat && cat.tipo === 'investimento')
+      ? '<button class="btn btn-fantasma" data-focus-apri>Concentrazione</button>' : '';
+    html +=
+      '<div class="card-attiva">' +
+        '<div class="riga-attiva">' +
+          '<span class="pallino" style="background:' + esc(colore) + '"></span>' +
+          '<span class="etichetta">' + esc(etichettaSessione(attiva)) + '</span>' + badge +
+          '<span class="da-quando">dalle ' + fmtOra(new Date(attiva.inizio)) + '</span>' +
+        '</div>' +
+        '<div class="crono" data-crono>' + fmtCrono(Date.now() - Date.parse(attiva.inizio)) + '</div>' +
+        '<input class="input-nota" type="text" placeholder="Nota (facoltativa)" value="' + esc(attiva.nota) + '" data-nota-attiva>' +
+        '<div class="azioni-attiva">' +
+          '<button class="btn btn-primario" data-stop>Stop</button>' + btnFocus +
+        '</div>' +
+      '</div>';
+  }
+
+  const unita = unitaQuickStart();
+  if (unita.length) {
+    html += '<div class="micro">Avvio rapido</div><div class="griglia-rapida">';
+    for (const k of unita) {
+      const parti = k.split('|');
+      const cat = trovaCat(parti[0]);
+      if (!cat) continue;
+      const sub = parti[1] ? trovaSub(parti[1]) : null;
+      html +=
+        '<button class="btn-rapido" data-avvia="' + esc(k) + '">' +
+          '<span class="pallino" style="background:' + esc(cat.colore) + '"></span>' +
+          '<span class="testi">' +
+            '<span class="nome">' + esc(sub ? sub.nome : cat.nome) + '</span>' +
+            '<span class="cat">' + esc(sub ? cat.nome : cat.tipo) + '</span>' +
+          '</span>' +
+        '</button>';
+    }
+    html += '</div>';
+  }
+
+  html += '<div class="micro">Tutte le categorie</div>';
+  if (stato.categorie.length === 0) {
+    html += '<div class="vuoto">Nessuna categoria: creane una dalle Impostazioni.</div>';
+  }
+  for (const cat of stato.categorie) {
+    const subs = sottoDi(cat.id);
+    if (subs.length === 0) {
+      html +=
+        '<button class="blocco-cat" data-avvia="' + esc(chiaveUnita(cat.id, null)) + '">' +
+          '<span class="testa-cat">' +
+            '<span class="pallino" style="background:' + esc(cat.colore) + '"></span>' +
+            '<span class="nome">' + esc(cat.nome) + '</span>' +
+            '<span class="tipo">' + esc(cat.tipo) + '</span>' +
+          '</span>' +
+        '</button>';
+    } else {
+      html +=
+        '<div class="blocco-cat">' +
+          '<div class="testa-cat">' +
+            '<span class="pallino" style="background:' + esc(cat.colore) + '"></span>' +
+            '<span class="nome">' + esc(cat.nome) + '</span>' +
+            '<span class="tipo">' + esc(cat.tipo) + '</span>' +
+          '</div><div class="chips">';
+      for (const sub of subs) {
+        html += '<button class="chip" data-avvia="' + esc(chiaveUnita(cat.id, sub.id)) + '">' + esc(sub.nome) + '</button>';
+      }
+      html += '</div></div>';
+    }
+  }
+
+  el.innerHTML = html;
+
+  const nota = el.querySelector('[data-nota-attiva]');
+  if (nota) {
+    nota.addEventListener('change', () => {
+      const a = sessioneAttiva();
+      if (a) { a.nota = nota.value.trim(); salva(); }
+    });
+  }
+}
+
+function rendiGiorno() {
+  const el = $('#vista-giorno');
+  const eOggi = stessoGiorno(giornoVista, new Date());
+  const ritagli = ritagliGiorno(giornoVista);
+
+  let totInv = 0, totDisp = 0;
+  const perCategoria = new Map();
+  for (const r of ritagli) {
+    const cat = trovaCat(r.sessione.categoriaId);
+    const durata = r.fino - r.da;
+    if (cat && cat.tipo === 'investimento') totInv += durata; else totDisp += durata;
+    perCategoria.set(r.sessione.categoriaId, (perCategoria.get(r.sessione.categoriaId) || 0) + durata);
+  }
+  const msSveglio = (Number(stato.impostazioni.oreSveglio) || 16) * 3600000;
+  const nonReg = Math.max(0, msSveglio - totInv - totDisp);
+  const span = Math.max(msSveglio, totInv + totDisp);
+  const pct = (v) => (span > 0 ? (v / span * 100).toFixed(2) : '0') + '%';
+
+  let html =
+    '<div class="testa-giorno">' +
+      '<button class="btn-freccia" data-giorno-delta="-1" aria-label="Giorno precedente">‹</button>' +
+      '<div class="data">' + (eOggi ? 'Oggi' : esc(fmtDataBreve(giornoVista))) + '</div>' +
+      '<button class="btn-freccia" data-giorno-delta="1" aria-label="Giorno successivo"' + (eOggi ? ' disabled' : '') + '>›</button>' +
+    '</div>';
+  if (!eOggi) html += '<div class="torna"><button class="btn-piccolo" data-giorno-oggi>Torna a oggi</button></div>';
+
+  html +=
+    '<div class="barra-ore">' +
+      '<div class="seg seg-inv" style="width:' + pct(totInv) + '"></div>' +
+      '<div class="seg seg-disp" style="width:' + pct(totDisp) + '"></div>' +
+    '</div>' +
+    '<div class="legenda">' +
+      '<span><span class="pallino" style="background:var(--inv)"></span>Investimento ' + fmtDurata(totInv) + '</span>' +
+      '<span><span class="pallino" style="background:var(--disp)"></span>Dispersione ' + fmtDurata(totDisp) + '</span>' +
+      '<span><span class="pallino" style="background:var(--grigio)"></span>Non registrato ' + fmtDurata(nonReg) + '</span>' +
+    '</div>';
+
+  if (perCategoria.size > 0) {
+    html += '<div class="micro">Totali per categoria</div><div class="pannello">';
+    const righe = [...perCategoria.entries()].sort((a, b) => b[1] - a[1]);
+    for (const riga of righe) {
+      const cat = trovaCat(riga[0]);
+      html +=
+        '<div class="tot-riga">' +
+          '<span class="pallino" style="background:' + esc(cat ? cat.colore : '#888') + '"></span>' +
+          '<span>' + esc(cat ? cat.nome : 'Categoria eliminata') + '</span>' +
+          '<span class="durata">' + fmtDurata(riga[1]) + '</span>' +
+        '</div>';
+    }
+    html += '</div>';
+  }
+
+  html += '<div class="micro">Sessioni</div>';
+  if (ritagli.length === 0) {
+    html += '<div class="vuoto">Nessuna sessione registrata questo giorno: avvia un timer dalla schermata Home.</div>';
+  } else {
+    for (const r of ritagli) {
+      const s = r.sessione;
+      const cat = trovaCat(s.categoriaId);
+      const badge = s.avvio ? '<span class="badge">' + esc(ETICHETTA_AVVIO[s.avvio] || s.avvio) + '</span>' : '';
+      const tagli = [];
+      if (r.iniziataPrima) tagli.push('iniziata il giorno prima');
+      if (r.continuaDopo) tagli.push('continua il giorno dopo');
+      const rigaTagli = tagli.length ? '<span class="sotto">' + tagli.join(' · ') + '</span>' : '';
+      const rigaNota = s.nota ? '<span class="sotto">' + esc(s.nota) + '</span>' : '';
+      html +=
+        '<button class="sess" data-modifica="' + esc(s.id) + '">' +
+          '<span class="orari"><span>' + fmtOra(new Date(r.da)) + '</span><span>' + (r.inCorso ? 'in corso' : fmtOra(new Date(r.fino))) + '</span></span>' +
+          '<span class="filo" style="background:' + esc(cat ? cat.colore : '#888') + '"></span>' +
+          '<span class="corpo">' +
+            '<span class="titolo">' + esc(etichettaSessione(s)) + badge + '</span>' +
+            rigaTagli + rigaNota +
+          '</span>' +
+          '<span class="durata">' + fmtDurata(r.fino - r.da) + '</span>' +
+        '</button>';
+    }
+  }
+
+  el.innerHTML = html;
+}
+
+/* ================= Modalità concentrazione ================= */
+function rendiFocus() {
+  const el = $('#focus');
+  const attiva = sessioneAttiva();
+  if (!attiva) { el.hidden = true; return; }
+  if (el.hidden) return; // si apre solo su richiesta esplicita
+  const cat = trovaCat(attiva.categoriaId);
+  el.innerHTML =
+    '<button class="esci" data-focus-chiudi aria-label="Esci dalla modalità concentrazione">✕</button>' +
+    '<div class="contesto">' +
+      '<span class="pallino" style="background:' + esc(cat ? cat.colore : '#888') + '"></span>' +
+      esc(etichettaSessione(attiva)) +
+    '</div>' +
+    '<div class="crono" data-crono>' + fmtCrono(Date.now() - Date.parse(attiva.inizio)) + '</div>' +
+    '<button class="btn btn-primario" data-stop>Stop</button>';
+}
+
+function apriFocus() {
+  const el = $('#focus');
+  el.hidden = false;
+  rendiFocus();
+  if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+}
+
+function chiudiFocus() {
+  const el = $('#focus');
+  if (el.hidden) return;
+  el.hidden = true;
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+}
+
+/* ================= Modali ================= */
+function apriModale(html) {
+  $('#modale').innerHTML = html;
+  $('#velo').hidden = false;
+  return $('#modale');
+}
+function chiudiModale() {
+  $('#velo').hidden = true;
+  $('#modale').innerHTML = '';
+}
+
+function apriModaleAvvio(cat, subId) {
+  const sub = subId ? trovaSub(subId) : null;
+  const m = apriModale(
+    '<h2>Come inizia questa sessione?</h2>' +
+    '<p class="sotto-titolo">' + esc(sub ? cat.nome + ' · ' + sub.nome : cat.nome) + '</p>' +
+    '<div class="avvio-scelte">' +
+      '<button class="btn" data-scelta="deciso">L&#39;ho scelto</button>' +
+      '<button class="btn" data-scelta="scivolato">Ci sono finito dentro</button>' +
+    '</div>' +
+    '<div class="riga-bottoni"><button class="btn btn-fantasma" data-annulla>Annulla</button></div>'
+  );
+  m.querySelectorAll('[data-scelta]').forEach((b) => b.addEventListener('click', () => {
+    chiudiModale();
+    avviaSessione(cat.id, subId, b.dataset.scelta);
+  }));
+  m.querySelector('[data-annulla]').addEventListener('click', chiudiModale);
+}
+
+function apriConferma(messaggio, onConferma, testoConferma, onAnnulla) {
+  const m = apriModale(
+    '<h2>Conferma</h2>' +
+    '<p class="sotto-titolo">' + esc(messaggio) + '</p>' +
+    '<div class="riga-bottoni">' +
+      '<button class="btn btn-fantasma" data-annulla>Annulla</button>' +
+      '<button class="btn btn-rischio-pieno" data-ok>' + esc(testoConferma || 'Conferma') + '</button>' +
+    '</div>'
+  );
+  m.querySelector('[data-annulla]').addEventListener('click', () => {
+    chiudiModale();
+    if (onAnnulla) onAnnulla();
+  });
+  m.querySelector('[data-ok]').addEventListener('click', () => {
+    chiudiModale();
+    onConferma();
+  });
+}
+
+function apriModaleModifica(idSessione) {
+  const s = stato.sessioni.find((x) => x.id === idSessione);
+  if (!s) return;
+  const eAttiva = s.fine === null;
+  const inizioOrig = new Date(s.inizio);
+  const fineOrig = s.fine ? new Date(s.fine) : null;
+
+  const opzioniCat = stato.categorie.map((c) =>
+    '<option value="' + esc(c.id) + '"' + (c.id === s.categoriaId ? ' selected' : '') + '>' + esc(c.nome) + '</option>'
+  ).join('');
+
+  const m = apriModale(
+    '<h2>Correggi sessione</h2>' +
+    (eAttiva ? '<p class="sotto-titolo">Sessione in corso: lascia vuota la fine per farla continuare.</p>' : '') +
+    '<div class="campo"><label>Inizio</label><input type="datetime-local" data-c-inizio value="' + aInputDataOra(inizioOrig) + '"></div>' +
+    '<div class="campo"><label>Fine</label><input type="datetime-local" data-c-fine value="' + (fineOrig ? aInputDataOra(fineOrig) : '') + '"></div>' +
+    '<div class="campo"><label>Categoria</label><select data-c-cat>' + opzioniCat + '</select></div>' +
+    '<div class="campo"><label>Sottocategoria</label><select data-c-sub></select></div>' +
+    '<div class="campo" data-riga-avvio hidden><label>Avvio</label><div class="segmentato">' +
+      '<button type="button" data-c-avvio="deciso">L&#39;ho scelto</button>' +
+      '<button type="button" data-c-avvio="scivolato">Ci sono finito dentro</button>' +
+    '</div></div>' +
+    '<div class="campo"><label>Nota</label><textarea rows="2" data-c-nota>' + esc(s.nota) + '</textarea></div>' +
+    '<div class="errore" data-c-errore hidden></div>' +
+    '<div class="riga-bottoni">' +
+      '<button class="btn btn-rischio" data-c-elimina>Elimina</button>' +
+      '<span class="spinta"></span>' +
+      '<button class="btn btn-fantasma" data-annulla>Annulla</button>' +
+      '<button class="btn btn-primario" data-c-salva>Salva</button>' +
+    '</div>'
+  );
+
+  let avvioSel = s.avvio;
+  const selCat = m.querySelector('[data-c-cat]');
+  const selSub = m.querySelector('[data-c-sub]');
+  const rigaAvvio = m.querySelector('[data-riga-avvio]');
+
+  function aggiornaSub() {
+    const subs = sottoDi(selCat.value);
+    let opts = '<option value="">— nessuna —</option>';
+    for (const sub of subs) {
+      opts += '<option value="' + esc(sub.id) + '"' + (sub.id === s.sottocategoriaId ? ' selected' : '') + '>' + esc(sub.nome) + '</option>';
+    }
+    selSub.innerHTML = opts;
+    selSub.disabled = subs.length === 0;
+  }
+  function aggiornaAvvio() {
+    const cat = trovaCat(selCat.value);
+    const serve = !!(cat && cat.tipo === 'dispersione');
+    rigaAvvio.hidden = !serve;
+    m.querySelectorAll('[data-c-avvio]').forEach((b) =>
+      b.classList.toggle('sel', serve && b.dataset.cAvvio === avvioSel));
+  }
+  selCat.addEventListener('change', () => { aggiornaSub(); aggiornaAvvio(); });
+  m.querySelectorAll('[data-c-avvio]').forEach((b) => b.addEventListener('click', () => {
+    avvioSel = b.dataset.cAvvio;
+    aggiornaAvvio();
+  }));
+  aggiornaSub();
+  aggiornaAvvio();
+
+  function mostraErrore(t) {
+    const e = m.querySelector('[data-c-errore]');
+    e.textContent = t;
+    e.hidden = false;
+  }
+
+  m.querySelector('[data-annulla]').addEventListener('click', chiudiModale);
+
+  m.querySelector('[data-c-elimina]').addEventListener('click', () => {
+    apriConferma('Eliminare questa sessione? L\'operazione non è annullabile.', () => {
+      stato.sessioni = stato.sessioni.filter((x) => x.id !== s.id);
+      salva();
+      rendi();
+    }, 'Elimina', () => apriModaleModifica(idSessione));
+  });
+
+  m.querySelector('[data-c-salva]').addEventListener('click', () => {
+    const vIni = m.querySelector('[data-c-inizio]').value;
+    const vFin = m.querySelector('[data-c-fine]').value;
+    if (!vIni) { mostraErrore('Inserisci l\'ora di inizio.'); return; }
+
+    // Se un campo non è stato toccato, si conservano i secondi originali:
+    // evita falsi conflitti con sessioni adiacenti al minuto.
+    const nInizio = (vIni === aInputDataOra(inizioOrig)) ? inizioOrig : new Date(vIni);
+    let nFine = null;
+    if (vFin === '') {
+      if (!eAttiva) { mostraErrore('Inserisci l\'ora di fine.'); return; }
+    } else {
+      nFine = (fineOrig && vFin === aInputDataOra(fineOrig)) ? fineOrig : new Date(vFin);
+    }
+    if (isNaN(nInizio.getTime()) || (nFine && isNaN(nFine.getTime()))) { mostraErrore('Data non valida.'); return; }
+
+    const limiteFuturo = Date.now() + 60000; // un minuto di tolleranza sull'orologio
+    if (nInizio.getTime() > limiteFuturo) { mostraErrore('L\'inizio non può essere nel futuro.'); return; }
+    if (nFine) {
+      if (nFine.getTime() <= nInizio.getTime()) { mostraErrore('L\'ora di fine deve essere successiva all\'inizio.'); return; }
+      if (nFine.getTime() > limiteFuturo) { mostraErrore('L\'ora di fine non può essere nel futuro.'); return; }
+    }
+
+    const conflitto = trovaSovrapposizione(nInizio.getTime(), nFine ? nFine.getTime() : Date.now(), s.id);
+    if (conflitto) { mostraErrore(messaggioConflitto(conflitto)); return; }
+
+    const catSel = trovaCat(selCat.value);
+    if (!catSel) { mostraErrore('Categoria non valida.'); return; }
+    let nAvvio = null;
+    if (catSel.tipo === 'dispersione') {
+      if (avvioSel !== 'deciso' && avvioSel !== 'scivolato') { mostraErrore('Indica come è iniziata la sessione.'); return; }
+      nAvvio = avvioSel;
+    }
+
+    s.inizio = nInizio.toISOString();
+    s.fine = nFine ? nFine.toISOString() : null;
+    s.categoriaId = catSel.id;
+    s.sottocategoriaId = selSub.value || null;
+    s.avvio = nAvvio;
+    s.nota = m.querySelector('[data-c-nota]').value.trim();
+    salva();
+    chiudiModale();
+    rendi();
+  });
+}
+
+function apriModaleVecchio(sessione) {
+  avvisoVecchioMostrato = true;
+  const inizio = new Date(sessione.inizio);
+  const quando = stessoGiorno(inizio, new Date()) ? 'oggi' : 'il ' + fmtDataBreve(inizio);
+  const m = apriModale(
+    '<h2>Timer attivo da più di 6 ore</h2>' +
+    '<p class="sotto-titolo">La sessione "' + esc(etichettaSessione(sessione)) + '" è partita ' +
+    esc(quando) + ' alle ' + fmtOra(inizio) +
+    '. Probabilmente il timer è rimasto acceso: correggi l\'ora di fine invece di tenere tutto il tempo trascorso.</p>' +
+    '<div class="campo"><label>Fine effettiva</label><input type="datetime-local" data-v-fine value="' + aInputDataOra(new Date()) + '"></div>' +
+    '<div class="errore" data-v-errore hidden></div>' +
+    '<div class="riga-bottoni">' +
+      '<button class="btn btn-fantasma" data-v-continua>Il timer è giusto, continua</button>' +
+      '<button class="btn btn-primario" data-v-salva>Chiudi la sessione qui</button>' +
+    '</div>'
+  );
+  m.querySelector('[data-v-continua]').addEventListener('click', chiudiModale);
+  m.querySelector('[data-v-salva]').addEventListener('click', () => {
+    const err = (t) => {
+      const e = m.querySelector('[data-v-errore]');
+      e.textContent = t;
+      e.hidden = false;
+    };
+    const v = m.querySelector('[data-v-fine]').value;
+    if (!v) { err('Inserisci l\'ora di fine.'); return; }
+    const nFine = new Date(v);
+    if (isNaN(nFine.getTime())) { err('Data non valida.'); return; }
+    if (nFine.getTime() <= Date.parse(sessione.inizio)) { err('La fine deve essere successiva all\'inizio (' + fmtDataBreve(new Date(sessione.inizio)) + ', ' + fmtOra(new Date(sessione.inizio)) + ').'); return; }
+    if (nFine.getTime() > Date.now() + 60000) { err('La fine non può essere nel futuro.'); return; }
+    const conflitto = trovaSovrapposizione(Date.parse(sessione.inizio), nFine.getTime(), sessione.id);
+    if (conflitto) { err(messaggioConflitto(conflitto)); return; }
+    sessione.fine = nFine.toISOString();
+    salva();
+    chiudiModale();
+    rendi();
+  });
+}
+
+function controllaTimerVecchio() {
+  if (statoCorrotto || avvisoVecchioMostrato) return;
+  const attiva = sessioneAttiva();
+  if (attiva && Date.now() - Date.parse(attiva.inizio) > SEI_ORE_MS) apriModaleVecchio(attiva);
+}
+
+/* ================= Impostazioni ================= */
+function apriModaleImpostazioni() {
+  const m = apriModale('<h2>Impostazioni</h2><div data-imp-corpo></div>');
+  rendiImpostazioni(m.querySelector('[data-imp-corpo]'));
+}
+
+function rendiImpostazioni(corpo) {
+  const imp = stato.impostazioni;
+  let html =
+    '<div class="micro">Giornata</div>' +
+    '<div class="campo"><label>Ore da sveglio al giorno</label>' +
+      '<input type="number" min="1" max="24" step="1" inputmode="numeric" data-i-ore value="' + esc(imp.oreSveglio) + '"></div>' +
+    '<div class="campo"><label>Data di inizio del percorso</label>' +
+      '<input type="date" data-i-data value="' + aInputData(new Date(imp.dataInizioPercorso)) + '"></div>' +
+    '<div class="micro">Categorie</div>';
+
+  for (const cat of stato.categorie) {
+    html +=
+      '<div class="imp-cat">' +
+        '<div class="imp-riga">' +
+          '<input type="color" data-i-colore="' + esc(cat.id) + '" value="' + esc(cat.colore) + '" aria-label="Colore">' +
+          '<input type="text" data-i-nome="' + esc(cat.id) + '" value="' + esc(cat.nome) + '" aria-label="Nome categoria">' +
+          '<select data-i-tipo="' + esc(cat.id) + '" aria-label="Tipo">' +
+            '<option value="investimento"' + (cat.tipo === 'investimento' ? ' selected' : '') + '>investimento</option>' +
+            '<option value="dispersione"' + (cat.tipo === 'dispersione' ? ' selected' : '') + '>dispersione</option>' +
+          '</select>' +
+          '<button class="btn-x" data-i-elimina-cat="' + esc(cat.id) + '" aria-label="Elimina categoria">✕</button>' +
+        '</div>';
+    for (const sub of sottoDi(cat.id)) {
+      html +=
+        '<div class="imp-sub">' +
+          '<input type="text" data-i-sub-nome="' + esc(sub.id) + '" value="' + esc(sub.nome) + '" aria-label="Nome sottocategoria">' +
+          '<button class="btn-x" data-i-elimina-sub="' + esc(sub.id) + '" aria-label="Elimina sottocategoria">✕</button>' +
+        '</div>';
+    }
+    html +=
+      '<div class="imp-sub">' +
+        '<input type="text" placeholder="Nuova sottocategoria" data-i-sub-nuova="' + esc(cat.id) + '">' +
+        '<button class="btn-piccolo" data-i-sub-aggiungi="' + esc(cat.id) + '">Aggiungi</button>' +
+      '</div></div>';
+  }
+
+  html +=
+    '<div class="imp-riga"><button class="btn-piccolo" data-i-cat-aggiungi>+ Nuova categoria</button></div>' +
+    '<div class="micro">Dati</div>' +
+    '<div class="imp-riga"><button class="btn-piccolo" data-i-esporta>Esporta dati (JSON)</button></div>' +
+    '<div class="riga-bottoni"><button class="btn btn-primario" data-i-chiudi>Chiudi</button></div>';
+
+  corpo.innerHTML = html;
+
+  corpo.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.matches('[data-i-ore]')) {
+      const v = Math.min(24, Math.max(1, parseInt(t.value, 10) || 16));
+      stato.impostazioni.oreSveglio = v;
+      t.value = v;
+      salva();
+    } else if (t.matches('[data-i-data]')) {
+      if (t.value) {
+        stato.impostazioni.dataInizioPercorso = new Date(t.value + 'T00:00').toISOString();
+        salva();
+      }
+    } else if (t.matches('[data-i-colore]')) {
+      const c = trovaCat(t.dataset.iColore);
+      if (c) { c.colore = t.value; salva(); }
+    } else if (t.matches('[data-i-nome]')) {
+      const c = trovaCat(t.dataset.iNome);
+      if (c) {
+        const v = t.value.trim();
+        if (v) c.nome = v; else t.value = c.nome;
+        salva();
+      }
+    } else if (t.matches('[data-i-tipo]')) {
+      const c = trovaCat(t.dataset.iTipo);
+      if (c) { c.tipo = t.value; salva(); }
+    } else if (t.matches('[data-i-sub-nome]')) {
+      const sub = trovaSub(t.dataset.iSubNome);
+      if (sub) {
+        const v = t.value.trim();
+        if (v) sub.nome = v; else t.value = sub.nome;
+        salva();
+      }
+    }
+  });
+
+  corpo.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.matches('[data-i-chiudi]')) { chiudiModale(); rendi(); return; }
+    if (b.matches('[data-i-esporta]')) { esportaJson(); return; }
+    if (b.matches('[data-i-sub-aggiungi]')) {
+      const catId = b.dataset.iSubAggiungi;
+      const campo = corpo.querySelector('[data-i-sub-nuova="' + catId + '"]');
+      const nome = campo ? campo.value.trim() : '';
+      if (!nome) return;
+      stato.sottocategorie.push({ id: nuovoId(), categoriaId: catId, nome: nome });
+      salva();
+      rendiImpostazioni(corpo);
+      return;
+    }
+    if (b.matches('[data-i-cat-aggiungi]')) {
+      stato.categorie.push({ id: nuovoId(), nome: 'Nuova categoria', colore: '#8a8378', tipo: 'investimento' });
+      salva();
+      rendiImpostazioni(corpo);
+      return;
+    }
+    if (b.matches('[data-i-elimina-cat]')) {
+      const id = b.dataset.iEliminaCat;
+      const cat = trovaCat(id);
+      if (!cat) return;
+      const n = nSessioniCat(id);
+      if (n > 0) {
+        apriAvvisoImpostazioni('"' + cat.nome + '" ha ' + n + ' sessioni registrate e non può essere eliminata. Elimina prima le sessioni o riassegnale a un\'altra categoria.');
+        return;
+      }
+      apriConferma('Eliminare la categoria "' + cat.nome + '" e le sue sottocategorie?', () => {
+        stato.categorie = stato.categorie.filter((c) => c.id !== id);
+        stato.sottocategorie = stato.sottocategorie.filter((sc) => sc.categoriaId !== id);
+        salva();
+        apriModaleImpostazioni();
+      }, 'Elimina', apriModaleImpostazioni);
+      return;
+    }
+    if (b.matches('[data-i-elimina-sub]')) {
+      const id = b.dataset.iEliminaSub;
+      const sub = trovaSub(id);
+      if (!sub) return;
+      const n = nSessioniSub(id);
+      if (n > 0) {
+        apriAvvisoImpostazioni('"' + sub.nome + '" è usata in ' + n + ' sessioni e non può essere eliminata. Riassegna prima quelle sessioni.');
+        return;
+      }
+      stato.sottocategorie = stato.sottocategorie.filter((sc) => sc.id !== id);
+      salva();
+      rendiImpostazioni(corpo);
+      return;
+    }
+  });
+}
+
+function apriAvvisoImpostazioni(messaggio) {
+  const m = apriModale(
+    '<h2>Impossibile eliminare</h2>' +
+    '<p class="sotto-titolo">' + esc(messaggio) + '</p>' +
+    '<div class="riga-bottoni"><button class="btn btn-primario" data-ok>Ok</button></div>'
+  );
+  m.querySelector('[data-ok]').addEventListener('click', apriModaleImpostazioni);
+}
+
+/* ================= Esportazione e recupero ================= */
+function scaricaFile(nome, contenuto, tipo) {
+  const blob = new Blob([contenuto], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+function esportaJson() {
+  scaricaFile('tempo-' + aInputData(new Date()) + '.json', JSON.stringify(stato, null, 2), 'application/json');
+}
+
+function mostraRecupero(grezzo) {
+  document.body.innerHTML =
+    '<main><div class="pannello" style="margin-top:24px;padding:22px">' +
+      '<h2>Dati non leggibili</h2>' +
+      '<p style="color:var(--testo2)">I dati salvati in questo browser non sono in un formato leggibile. ' +
+      'Puoi scaricarne una copia grezza prima di decidere se azzerare tutto.</p>' +
+      '<textarea readonly rows="8" style="width:100%" id="rec-grezzo"></textarea>' +
+      '<div class="riga-bottoni" style="justify-content:flex-start">' +
+        '<button class="btn" id="rec-scarica">Scarica copia grezza</button>' +
+        '<button class="btn btn-rischio" id="rec-reset">Azzera e ricomincia</button>' +
+      '</div>' +
+    '</div></main>';
+  $('#rec-grezzo').value = grezzo;
+  $('#rec-scarica').addEventListener('click', () => scaricaFile('tt_v1-grezzo.txt', grezzo, 'text/plain'));
+  $('#rec-reset').addEventListener('click', () => {
+    if (!window.confirm('Cancellare definitivamente i dati salvati e ripartire da zero?')) return;
+    try { localStorage.setItem(CHIAVE, JSON.stringify(statoDefault())); } catch (err) {}
+    location.reload();
+  });
+}
+
+/* ================= Eventi globali e avvio ================= */
+function attaccaEventi() {
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-avvia],[data-stop],[data-focus-apri],[data-focus-chiudi],[data-modifica],[data-vista],[data-impostazioni],[data-giorno-delta],[data-giorno-oggi]');
+    if (!b) return;
+    if (b.dataset.avvia !== undefined) {
+      const parti = b.dataset.avvia.split('|');
+      richiediAvvio(parti[0], parti[1] || null);
+    } else if (b.dataset.stop !== undefined) {
+      fermaSessione();
+    } else if (b.dataset.focusApri !== undefined) {
+      apriFocus();
+    } else if (b.dataset.focusChiudi !== undefined) {
+      chiudiFocus();
+    } else if (b.dataset.modifica !== undefined) {
+      apriModaleModifica(b.dataset.modifica);
+    } else if (b.dataset.vista !== undefined) {
+      vistaCorrente = b.dataset.vista;
+      if (vistaCorrente === 'giorno') giornoVista = new Date();
+      rendi();
+    } else if (b.dataset.impostazioni !== undefined) {
+      apriModaleImpostazioni();
+    } else if (b.dataset.giornoDelta !== undefined) {
+      const d = parseInt(b.dataset.giornoDelta, 10);
+      giornoVista = new Date(giornoVista.getFullYear(), giornoVista.getMonth(), giornoVista.getDate() + d);
+      rendiGiorno();
+    } else if (b.dataset.giornoOggi !== undefined) {
+      giornoVista = new Date();
+      rendiGiorno();
+    }
+  });
+
+  $('#velo').addEventListener('click', (e) => {
+    if (e.target.id === 'velo') { chiudiModale(); rendi(); }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) $('#focus').hidden = true;
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      controllaTimerVecchio();
+      rendi();
+    }
+  });
+
+  // Un'altra scheda della stessa app ha scritto sui dati: ricarica lo stato.
+  window.addEventListener('storage', (e) => {
+    if (e.key !== CHIAVE) return;
+    try { carica(); } catch (err) {}
+    if (!statoCorrotto) rendi();
+  });
+}
+
+function tick() {
+  secondi++;
+  const attiva = sessioneAttiva();
+  if (!attiva) return;
+  const testo = fmtCrono(Date.now() - Date.parse(attiva.inizio));
+  document.querySelectorAll('[data-crono]').forEach((el) => { el.textContent = testo; });
+  // Aggiorna barra e totali del giorno mentre il timer corre.
+  if (secondi % 30 === 0 && vistaCorrente === 'giorno') rendiGiorno();
+}
+
+function init() {
+  carica();
+  if (statoCorrotto) return; // la schermata di recupero è già visibile
+  attaccaEventi();
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  rendi();
+  controllaTimerVecchio();
+  setInterval(tick, 1000);
+}
+
+init();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
