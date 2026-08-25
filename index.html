@@ -870,7 +870,9 @@ function controllaTimerVecchio() {
 /* ================= Impostazioni ================= */
 function apriModaleImpostazioni() {
   const m = apriModale('<h2>Impostazioni</h2><div data-imp-corpo></div>');
-  rendiImpostazioni(m.querySelector('[data-imp-corpo]'));
+  const corpo = m.querySelector('[data-imp-corpo]');
+  attaccaEventiImpostazioni(corpo);
+  rendiImpostazioni(corpo);
 }
 
 function rendiImpostazioni(corpo) {
@@ -916,7 +918,11 @@ function rendiImpostazioni(corpo) {
     '<div class="riga-bottoni"><button class="btn btn-primario" data-i-chiudi>Chiudi</button></div>';
 
   corpo.innerHTML = html;
+}
 
+// Attaccati UNA volta per apertura del pannello: rendiImpostazioni può
+// ridisegnare il contenuto senza duplicare i listener.
+function attaccaEventiImpostazioni(corpo) {
   corpo.addEventListener('change', (e) => {
     const t = e.target;
     if (t.matches('[data-i-ore]')) {
