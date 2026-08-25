@@ -115,8 +115,18 @@ button.blocco-cat:active{background:var(--superficie2)}
 .sess .sotto{display:block;color:var(--testo2);font-size:14px;margin-top:3px;overflow-wrap:anywhere}
 .sess .durata{flex:none;align-self:center;color:var(--testo2);font-variant-numeric:tabular-nums;padding-left:6px;white-space:nowrap}
 
+/* ============ Vista settimana (obiettivi) ============ */
+.setti-n{text-align:center;color:var(--testo3);font-size:14px;margin-top:6px}
+.obiettivo{margin-top:16px}
+.obiettivo-testa{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.obiettivo-testa .nome{font-weight:650}
+.obiettivo-testa .valori{margin-left:auto;color:var(--testo2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.barra-obiettivo{margin-top:0}
+.obiettivo-sotto{margin-top:6px;font-size:13px;color:var(--testo3)}
+
 /* ============ Barra di navigazione ============ */
-nav#barra{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--superficie);border-top:1px solid var(--bordo);display:flex;gap:6px;padding:10px max(14px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+nav#barra{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--superficie);border-top:1px solid var(--bordo);padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
+.barra-int{max-width:880px;margin:0 auto;display:flex;gap:6px;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
 nav#barra .tab{flex:1;min-height:58px;border-radius:12px;font-size:17px;font-weight:600;color:var(--testo2);display:inline-flex;align-items:center;justify-content:center}
 nav#barra .tab.attiva{color:var(--testo);background:var(--superficie2)}
 nav#barra .tab-icona{flex:0 0 68px}
@@ -156,6 +166,22 @@ input[type=color]{padding:3px;width:48px;height:48px;min-height:48px;flex:none;b
 #focus .crono{font-size:clamp(88px,17vw,230px)}
 #focus .btn{min-width:220px}
 #focus .esci{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;width:58px;height:58px;border-radius:50%;border:1px solid var(--bordo);color:var(--testo2);font-size:20px;display:inline-flex;align-items:center;justify-content:center}
+
+/* ============ Animazioni (solo presentazione) ============
+   Si attivano una tantum al cambio di vista o di giorno (classe .anima-vista
+   aggiunta da animaIngresso e rimossa a fine corsa), mai sugli aggiornamenti
+   periodici del timer. La card della sessione attiva è esclusa: il cronometro
+   non deve muoversi. Con prefers-reduced-motion tutto questo blocco sparisce. */
+@media (prefers-reduced-motion: no-preference){
+  @keyframes apparizione{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes crescitaX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  @keyframes crescitaY{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+  .anima-vista > *:not(.card-attiva){animation:apparizione 200ms ease-out both}
+  .anima-vista .seg{transform-origin:left center;animation:crescitaX 300ms ease-out both}
+  .anima-vista .filo{transform-origin:center top;animation:crescitaY 300ms ease-out both}
+  .btn-rapido,.chip,button.blocco-cat{transition:transform 120ms ease}
+  .btn-rapido:active,.chip:active,button.blocco-cat:active{transform:scale(.97)}
+}
 </style>
 </head>
 <body>
@@ -163,16 +189,20 @@ input[type=color]{padding:3px;width:48px;height:48px;min-height:48px;flex:none;b
 <main>
   <section id="vista-home"></section>
   <section id="vista-giorno" hidden></section>
+  <section id="vista-settimana" hidden></section>
 </main>
 <nav id="barra">
+  <div class="barra-int">
   <button class="tab attiva" data-vista="home">Home</button>
   <button class="tab" data-vista="giorno">Oggi</button>
+  <button class="tab" data-vista="settimana">Settimana</button>
   <button class="tab tab-icona" data-impostazioni aria-label="Impostazioni">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
       <line x1="3" y1="7" x2="21" y2="7"></line><circle cx="9" cy="7" r="3" fill="var(--superficie)"></circle>
       <line x1="3" y1="17" x2="21" y2="17"></line><circle cx="15" cy="17" r="3" fill="var(--superficie)"></circle>
     </svg>
   </button>
+  </div>
 </nav>
 <div id="focus" hidden></div>
 <div id="velo" hidden><div id="modale" role="dialog" aria-modal="true"></div></div>
@@ -222,6 +252,16 @@ function stessoGiorno(a, b) {
 }
 function inizioGiorno(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
 function fineGiorno(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1); }
+// Settimane lunedì-domenica.
+function inizioSettimana(d) {
+  const g = inizioGiorno(d);
+  const scarto = (g.getDay() + 6) % 7; // lun=0 ... dom=6
+  return new Date(g.getFullYear(), g.getMonth(), g.getDate() - scarto);
+}
+function fineSettimana(d) {
+  const i = inizioSettimana(d);
+  return new Date(i.getFullYear(), i.getMonth(), i.getDate() + 7);
+}
 
 function aInputDataOra(d) {
   const p = (n) => String(n).padStart(2, '0');
@@ -245,7 +285,7 @@ let secondi = 0;
 function statoDefault() {
   const idStudio = nuovoId(), idCrescita = nuovoId(), idGaming = nuovoId(), idFeed = nuovoId();
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     categorie: [
       { id: idStudio,   nome: 'Studio uni',                    colore: '#5b8def', tipo: 'investimento' },
       { id: idCrescita, nome: 'Crescita personale',            colore: '#4fbf8b', tipo: 'investimento' },
@@ -261,7 +301,13 @@ function statoDefault() {
       { id: nuovoId(), categoriaId: idCrescita, nome: 'Progetti' }
     ],
     sessioni: [],
-    impostazioni: { oreSveglio: 16, dataInizioPercorso: new Date().toISOString() }
+    impostazioni: {
+      oreSveglio: 16,
+      dataInizioPercorso: new Date().toISOString(),
+      targetFinali: { studio: 14, crescita: 14 },  // ore/settimana
+      tettoScivolato: 5,                           // ore/settimana, fisso
+      rampa: [7, 7, 9, 9, 11, 11, 13, 13]          // ore per settimana 1..8
+    }
   };
 }
 
@@ -278,10 +324,20 @@ function carica() {
   if (grezzo === null) { stato = statoDefault(); salva(); return; }
   try {
     const dati = JSON.parse(grezzo);
-    const valido = dati && dati.schemaVersion === 1 &&
+    const valido = dati && (dati.schemaVersion === 1 || dati.schemaVersion === 2) &&
       Array.isArray(dati.categorie) && Array.isArray(dati.sottocategorie) &&
       Array.isArray(dati.sessioni) && dati.impostazioni && typeof dati.impostazioni === 'object';
     if (!valido) throw new Error('schema non valido');
+    if (dati.schemaVersion === 1) {
+      // Migrazione 1 -> 2: si aggiungono solo i campi degli obiettivi.
+      dati.impostazioni.targetFinali = { studio: 14, crescita: 14 };
+      dati.impostazioni.tettoScivolato = 5;
+      dati.impostazioni.rampa = [7, 7, 9, 9, 11, 11, 13, 13];
+      dati.schemaVersion = 2;
+      stato = dati;
+      salva();
+      return;
+    }
     stato = dati;
   } catch (err) {
     statoCorrotto = true;
@@ -313,6 +369,45 @@ function etichettaSessione(s) {
   const sub = s.sottocategoriaId ? trovaSub(s.sottocategoriaId) : null;
   const nomeCat = cat ? cat.nome : 'Categoria eliminata';
   return sub ? nomeCat + ' · ' + sub.nome : nomeCat;
+}
+
+/* ================= Obiettivi settimanali ================= */
+// La settimana 1 è quella (lun-dom) che contiene dataInizioPercorso.
+// Math.round assorbe l'ora in più/in meno dei cambi di ora legale.
+function settimanaDelPercorso(riferimento) {
+  const a = inizioSettimana(new Date(stato.impostazioni.dataInizioPercorso));
+  const b = inizioSettimana(riferimento);
+  return Math.max(1, Math.round((b - a) / (7 * 86400000)) + 1);
+}
+
+// chiave: 'studio' (prima categoria investimento) o 'crescita' (seconda).
+function targetPerSettimana(n, chiave) {
+  const imp = stato.impostazioni;
+  const rampa = Array.isArray(imp.rampa) ? imp.rampa : [];
+  if (n <= rampa.length) return Number(rampa[n - 1]) || 0;
+  return Number((imp.targetFinali || {})[chiave]) || 0;
+}
+
+// Somme della settimana (lun-dom) che contiene "riferimento": per categoria
+// e totale delle sessioni con avvio "scivolato". Le sessioni a cavallo dei
+// confini vengono ritagliate; quella attiva conta fino ad adesso.
+function totaliSettimana(riferimento) {
+  const ini = inizioSettimana(riferimento).getTime();
+  const fin = fineSettimana(riferimento).getTime();
+  const adesso = Date.now();
+  const perCategoria = new Map();
+  let scivolato = 0;
+  for (const s of stato.sessioni) {
+    const a = Date.parse(s.inizio);
+    const b = s.fine ? Date.parse(s.fine) : adesso;
+    const da = Math.max(a, ini);
+    const fino = Math.min(b, fin);
+    if (fino <= da) continue;
+    const durata = fino - da;
+    perCategoria.set(s.categoriaId, (perCategoria.get(s.categoriaId) || 0) + durata);
+    if (s.avvio === 'scivolato') scivolato += durata;
+  }
+  return { perCategoria: perCategoria, scivolato: scivolato };
 }
 
 /* ================= Azioni sul timer ================= */
@@ -430,14 +525,28 @@ function unitaQuickStart() {
 }
 
 /* ================= Render ================= */
+// Solo presentazione: applica la classe d'ingresso e la rimuove a fine corsa.
+// Va chiamata SOLO al cambio di vista/giorno, mai sui re-render periodici.
+let timerAnima = 0;
+function animaIngresso(el) {
+  clearTimeout(timerAnima);
+  $('#vista-home').classList.remove('anima-vista');
+  $('#vista-giorno').classList.remove('anima-vista');
+  void el.offsetWidth; // riavvia l'animazione se la classe era appena stata tolta
+  el.classList.add('anima-vista');
+  timerAnima = setTimeout(() => el.classList.remove('anima-vista'), 350);
+}
+
 function rendi() {
   if (statoCorrotto) return;
   rendiBanner();
   rendiHome();
   rendiGiorno();
+  rendiSettimana();
   rendiFocus();
   $('#vista-home').hidden = vistaCorrente !== 'home';
   $('#vista-giorno').hidden = vistaCorrente !== 'giorno';
+  $('#vista-settimana').hidden = vistaCorrente !== 'settimana';
   document.querySelectorAll('#barra [data-vista]').forEach((b) => {
     b.classList.toggle('attiva', b.dataset.vista === vistaCorrente);
   });
@@ -617,6 +726,59 @@ function rendiGiorno() {
         '</button>';
     }
   }
+
+  el.innerHTML = html;
+}
+
+function rendiSettimana() {
+  const el = $('#vista-settimana');
+  const imp = stato.impostazioni;
+  const rif = new Date();
+  const ini = inizioSettimana(rif);
+  const dom = new Date(ini.getFullYear(), ini.getMonth(), ini.getDate() + 6);
+  const nSett = settimanaDelPercorso(rif);
+  const tot = totaliSettimana(rif);
+
+  let html =
+    '<div class="testa-giorno"><div class="data">' + esc(fmtDataBreve(ini)) + ' – ' + esc(fmtDataBreve(dom)) + '</div></div>' +
+    '<div class="setti-n">settimana ' + nSett + ' del percorso</div>' +
+    '<div class="micro">Obiettivi</div>';
+
+  const catObiettivo = stato.categorie.filter((c) => c.tipo === 'investimento').slice(0, 2);
+  const chiavi = ['studio', 'crescita'];
+  if (catObiettivo.length === 0) {
+    html += '<div class="vuoto">Nessuna categoria di tipo investimento.</div>';
+  }
+  catObiettivo.forEach((cat, i) => {
+    const oreTarget = targetPerSettimana(nSett, chiavi[i]);
+    const finale = Number((imp.targetFinali || {})[chiavi[i]]) || 0;
+    const x = tot.perCategoria.get(cat.id) || 0;
+    const pct = oreTarget > 0 ? Math.min(100, x / (oreTarget * 3600000) * 100) : 0;
+    html +=
+      '<div class="obiettivo">' +
+        '<div class="obiettivo-testa">' +
+          '<span class="pallino" style="background:' + esc(cat.colore) + '"></span>' +
+          '<span class="nome">' + esc(cat.nome) + '</span>' +
+          '<span class="valori">' + fmtDurata(x) + ' di ' + oreTarget + ' ore</span>' +
+        '</div>' +
+        '<div class="barra-ore barra-obiettivo"><div class="seg" style="width:' + pct.toFixed(2) + '%;background:' + esc(cat.colore) + '"></div></div>' +
+        '<div class="obiettivo-sotto">obiettivo finale: ' + finale + ' ore</div>' +
+      '</div>';
+  });
+
+  const tetto = Number(imp.tettoScivolato) || 0;
+  const xs = tot.scivolato;
+  const pctS = tetto > 0 ? Math.min(100, xs / (tetto * 3600000) * 100) : 0;
+  html +=
+    '<div class="micro">Tetto</div>' +
+    '<div class="obiettivo">' +
+      '<div class="obiettivo-testa">' +
+        '<span class="pallino" style="background:var(--disp)"></span>' +
+        '<span class="nome">Dispersione scivolata</span>' +
+        '<span class="valori">' + fmtDurata(xs) + ' · tetto ' + tetto + ' ore</span>' +
+      '</div>' +
+      '<div class="barra-ore barra-obiettivo"><div class="seg" style="width:' + pctS.toFixed(2) + '%;background:var(--disp)"></div></div>' +
+    '</div>';
 
   el.innerHTML = html;
 }
@@ -1080,15 +1242,18 @@ function attaccaEventi() {
       vistaCorrente = b.dataset.vista;
       if (vistaCorrente === 'giorno') giornoVista = new Date();
       rendi();
+      animaIngresso($('#vista-' + vistaCorrente));
     } else if (b.dataset.impostazioni !== undefined) {
       apriModaleImpostazioni();
     } else if (b.dataset.giornoDelta !== undefined) {
       const d = parseInt(b.dataset.giornoDelta, 10);
       giornoVista = new Date(giornoVista.getFullYear(), giornoVista.getMonth(), giornoVista.getDate() + d);
       rendiGiorno();
+      animaIngresso($('#vista-giorno'));
     } else if (b.dataset.giornoOggi !== undefined) {
       giornoVista = new Date();
       rendiGiorno();
+      animaIngresso($('#vista-giorno'));
     }
   });
 
@@ -1122,7 +1287,10 @@ function tick() {
   const testo = fmtCrono(Date.now() - Date.parse(attiva.inizio));
   document.querySelectorAll('[data-crono]').forEach((el) => { el.textContent = testo; });
   // Aggiorna barra e totali del giorno mentre il timer corre.
-  if (secondi % 30 === 0 && vistaCorrente === 'giorno') rendiGiorno();
+  if (secondi % 30 === 0) {
+    if (vistaCorrente === 'giorno') rendiGiorno();
+    if (vistaCorrente === 'settimana') rendiSettimana();
+  }
 }
 
 function init() {
@@ -1131,6 +1299,7 @@ function init() {
   attaccaEventi();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   rendi();
+  animaIngresso($('#vista-home'));
   controllaTimerVecchio();
   setInterval(tick, 1000);
 }
