@@ -167,6 +167,30 @@ input[type=color]{padding:3px;width:48px;height:48px;min-height:48px;flex:none;b
 #focus .btn{min-width:220px}
 #focus .esci{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;width:58px;height:58px;border-radius:50%;border:1px solid var(--bordo);color:var(--testo2);font-size:20px;display:inline-flex;align-items:center;justify-content:center}
 
+/* ============ Trend, review, backup ============ */
+.trend{display:flex;gap:6px;align-items:stretch;height:130px;margin-top:4px}
+.trend-col{flex:1;display:flex;flex-direction:column;min-width:0}
+.trend-area{flex:1;display:flex;gap:3px;align-items:flex-end;justify-content:center}
+.trend-barra{width:38%;max-width:22px;border-radius:4px 4px 0 0;min-height:3px}
+.trend-eti{text-align:center;font-size:11px;color:var(--testo3);margin-top:6px;font-variant-numeric:tabular-nums}
+.review-card{margin-top:12px}
+.review-range{font-weight:650}
+.review-q{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--testo3);margin-top:12px}
+.review-a{white-space:pre-wrap;margin-top:2px}
+.riga-backup{margin-top:26px;text-align:center;font-size:13px;color:var(--testo3)}
+#undo{position:fixed;left:0;right:0;bottom:calc(88px + env(safe-area-inset-bottom));z-index:45;display:flex;justify-content:center;padding:0 20px;pointer-events:none}
+.undo-int{pointer-events:auto;background:var(--superficie2);border:1px solid var(--bordo);border-radius:14px;padding:10px 10px 10px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+
+/* ============ Schermata di attrito ============ */
+#attrito{position:fixed;inset:0;background:var(--sfondo);z-index:90;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
+#attrito .scatola{width:100%;max-width:560px}
+.attrito-cat{display:flex;align-items:center;justify-content:center;gap:10px;font-size:22px;font-weight:650;margin-bottom:4px}
+#attrito .tot-riga .durata{white-space:normal;text-align:right}
+.attrito-azioni{display:flex;gap:12px;margin-top:26px}
+.attrito-azioni .btn{flex:1;min-height:64px}
+.btn:disabled{opacity:.45}
+.attrito-chiusa{color:var(--testo2);text-align:center;font-size:18px}
+
 /* ============ Animazioni (solo presentazione) ============
    Si attivano una tantum al cambio di vista o di giorno (classe .anima-vista
    aggiunta da animaIngresso e rimossa a fine corsa), mai sugli aggiornamenti
@@ -181,6 +205,11 @@ input[type=color]{padding:3px;width:48px;height:48px;min-height:48px;flex:none;b
   .anima-vista .filo{transform-origin:center top;animation:crescitaY 300ms ease-out both}
   .btn-rapido,.chip,button.blocco-cat{transition:transform 120ms ease}
   .btn-rapido:active,.chip:active,button.blocco-cat:active{transform:scale(.97)}
+  .anima-vista .trend-barra{transform-origin:center bottom;animation:crescitaY 300ms ease-out both}
+  @keyframes undoEntra{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes undoEsce{to{opacity:0;transform:translateY(16px)}}
+  #undo:not(.undo-uscita) .undo-int{animation:undoEntra 200ms ease-out}
+  #undo.undo-uscita .undo-int{animation:undoEsce 200ms ease-in both}
 }
 </style>
 </head>
@@ -193,9 +222,9 @@ input[type=color]{padding:3px;width:48px;height:48px;min-height:48px;flex:none;b
 </main>
 <nav id="barra">
   <div class="barra-int">
-  <button class="tab attiva" data-vista="home">Home</button>
+  <button class="tab" data-vista="home">Home</button>
   <button class="tab" data-vista="giorno">Oggi</button>
-  <button class="tab" data-vista="settimana">Settimana</button>
+  <button class="tab attiva" data-vista="settimana">Settimana</button>
   <button class="tab tab-icona" data-impostazioni aria-label="Impostazioni">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
       <line x1="3" y1="7" x2="21" y2="7"></line><circle cx="9" cy="7" r="3" fill="var(--superficie)"></circle>
@@ -205,6 +234,8 @@ input[type=color]{padding:3px;width:48px;height:48px;min-height:48px;flex:none;b
   </div>
 </nav>
 <div id="focus" hidden></div>
+<div id="attrito" hidden></div>
+<div id="undo" hidden><div class="undo-int"><span>Eliminata</span><button class="btn-piccolo" data-undo-annulla>Annulla</button></div></div>
 <div id="velo" hidden><div id="modale" role="dialog" aria-modal="true"></div></div>
 
 <script>
@@ -277,7 +308,7 @@ function aInputData(d) {
 let stato = null;
 let statoCorrotto = false;
 let erroreSalvataggio = false;
-let vistaCorrente = 'home';
+let vistaCorrente = 'settimana';
 let giornoVista = new Date();
 let avvisoVecchioMostrato = false;
 let secondi = 0;
@@ -285,7 +316,7 @@ let secondi = 0;
 function statoDefault() {
   const idStudio = nuovoId(), idCrescita = nuovoId(), idGaming = nuovoId(), idFeed = nuovoId();
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     categorie: [
       { id: idStudio,   nome: 'Studio uni',                    colore: '#5b8def', tipo: 'investimento' },
       { id: idCrescita, nome: 'Crescita personale',            colore: '#4fbf8b', tipo: 'investimento' },
@@ -306,9 +337,28 @@ function statoDefault() {
       dataInizioPercorso: new Date().toISOString(),
       targetFinali: { studio: 14, crescita: 14 },  // ore/settimana
       tettoScivolato: 5,                           // ore/settimana, fisso
-      rampa: [7, 7, 9, 9, 11, 11, 13, 13]          // ore per settimana 1..8
-    }
+      rampa: [7, 7, 9, 9, 11, 11, 13, 13],         // ore per settimana 1..8
+      ultimoBackup: null
+    },
+    reviews: []
   };
+}
+
+// Porta qualsiasi schema supportato (1..3) all'ultimo, aggiungendo solo campi.
+function migra(dati) {
+  if (dati.schemaVersion === 1) {
+    dati.impostazioni.targetFinali = { studio: 14, crescita: 14 };
+    dati.impostazioni.tettoScivolato = 5;
+    dati.impostazioni.rampa = [7, 7, 9, 9, 11, 11, 13, 13];
+    dati.schemaVersion = 2;
+  }
+  if (dati.schemaVersion === 2) {
+    dati.impostazioni.ultimoBackup = null;
+    dati.reviews = [];
+    dati.schemaVersion = 3;
+  }
+  if (!Array.isArray(dati.reviews)) dati.reviews = [];
+  return dati;
 }
 
 function carica() {
@@ -324,21 +374,14 @@ function carica() {
   if (grezzo === null) { stato = statoDefault(); salva(); return; }
   try {
     const dati = JSON.parse(grezzo);
-    const valido = dati && (dati.schemaVersion === 1 || dati.schemaVersion === 2) &&
+    const valido = dati && (dati.schemaVersion === 1 || dati.schemaVersion === 2 || dati.schemaVersion === 3) &&
       Array.isArray(dati.categorie) && Array.isArray(dati.sottocategorie) &&
       Array.isArray(dati.sessioni) && dati.impostazioni && typeof dati.impostazioni === 'object';
     if (!valido) throw new Error('schema non valido');
-    if (dati.schemaVersion === 1) {
-      // Migrazione 1 -> 2: si aggiungono solo i campi degli obiettivi.
-      dati.impostazioni.targetFinali = { studio: 14, crescita: 14 };
-      dati.impostazioni.tettoScivolato = 5;
-      dati.impostazioni.rampa = [7, 7, 9, 9, 11, 11, 13, 13];
-      dati.schemaVersion = 2;
-      stato = dati;
-      salva();
-      return;
-    }
+    const vecchiaVersione = dati.schemaVersion;
+    migra(dati);
     stato = dati;
+    if (vecchiaVersione !== dati.schemaVersion) salva();
   } catch (err) {
     statoCorrotto = true;
     mostraRecupero(grezzo);
@@ -408,6 +451,104 @@ function totaliSettimana(riferimento) {
     if (s.avvio === 'scivolato') scivolato += durata;
   }
   return { perCategoria: perCategoria, scivolato: scivolato };
+}
+
+/* ================= Statistiche ================= */
+function fmtOreMinuti(min) {
+  return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
+}
+
+// Ultime 8 settimane, dalla piu' vecchia alla corrente (parziale).
+function trendSettimane() {
+  const lun0 = inizioSettimana(new Date());
+  const out = [];
+  for (let k = 7; k >= 0; k--) {
+    const rif = new Date(lun0.getFullYear(), lun0.getMonth(), lun0.getDate() - 7 * k);
+    const tot = totaliSettimana(rif);
+    let inv = 0, disp = 0;
+    tot.perCategoria.forEach((ms, id) => {
+      const c = trovaCat(id);
+      if (c && c.tipo === 'investimento') inv += ms; else disp += ms;
+    });
+    out.push({ lunedi: rif, inv: inv, disp: disp, corrente: k === 0 });
+  }
+  return out;
+}
+
+// Scarto migliore-peggiore in ore di investimento, sulle ultime 8 settimane.
+// La settimana corrente (parziale) e quelle senza alcun dato non contano.
+function costanzaMs() {
+  const setts = trendSettimane().filter((s) => !s.corrente && (s.inv + s.disp) > 0);
+  if (setts.length < 2) return null;
+  let mi = Infinity, ma = -Infinity;
+  for (const s of setts) {
+    if (s.inv < mi) mi = s.inv;
+    if (s.inv > ma) ma = s.inv;
+  }
+  return ma - mi;
+}
+
+// Minuti dalla mezzanotte, in media, della prima sessione della categoria
+// nei giorni degli ultimi 14 che ne hanno almeno una.
+function oraMediaInizioMin(catId) {
+  const oggi0 = inizioGiorno(new Date());
+  const da = new Date(oggi0.getFullYear(), oggi0.getMonth(), oggi0.getDate() - 13).getTime();
+  const primoPerGiorno = new Map();
+  for (const s of stato.sessioni) {
+    if (s.categoriaId !== catId) continue;
+    const t = Date.parse(s.inizio);
+    if (t < da) continue;
+    const d = new Date(t);
+    const g = aInputData(d);
+    const min = d.getHours() * 60 + d.getMinutes();
+    if (!primoPerGiorno.has(g) || min < primoPerGiorno.get(g)) primoPerGiorno.set(g, min);
+  }
+  if (primoPerGiorno.size === 0) return null;
+  let somma = 0;
+  primoPerGiorno.forEach((m) => { somma += m; });
+  return Math.round(somma / primoPerGiorno.size);
+}
+
+// Tempo scivolato per fascia di 2 ore (0-2, 2-4, ... 22-24), su tutte le
+// sessioni con avvio "scivolato". fascia e' l'indice del bucket piu' carico,
+// oppure null sotto le 5 sessioni.
+function statScivolato() {
+  const buckets = new Array(12).fill(0);
+  let n = 0;
+  const adesso = Date.now();
+  for (const s of stato.sessioni) {
+    if (s.avvio !== 'scivolato') continue;
+    n++;
+    let t = Date.parse(s.inizio);
+    const fine = s.fine ? Date.parse(s.fine) : adesso;
+    let guardia = 0;
+    while (t < fine && guardia < 5000) {
+      guardia++;
+      const d = new Date(t);
+      const idx = Math.floor(d.getHours() / 2);
+      const oreConfine = (idx + 1) * 2;
+      const confine = (oreConfine >= 24)
+        ? new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, 0).getTime()
+        : new Date(d.getFullYear(), d.getMonth(), d.getDate(), oreConfine).getTime();
+      const fino = Math.min(fine, confine);
+      buckets[idx] += fino - t;
+      t = fino;
+    }
+  }
+  if (n < 5) return { n: n, fascia: null, buckets: buckets };
+  let best = 0;
+  for (let i = 1; i < 12; i++) if (buckets[i] > buckets[best]) best = i;
+  return { n: n, fascia: best, buckets: buckets };
+}
+
+/* ================= Review settimanale ================= */
+// La settimana candidabile: la corrente se oggi e' domenica, altrimenti
+// quella appena conclusa. Le piu' vecchie non vengono mai riproposte.
+function candidataReview() {
+  const oggi = new Date();
+  const lun = inizioSettimana(oggi);
+  if (oggi.getDay() === 0) return lun;
+  return new Date(lun.getFullYear(), lun.getMonth(), lun.getDate() - 7);
 }
 
 /* ================= Azioni sul timer ================= */
@@ -530,8 +671,7 @@ function unitaQuickStart() {
 let timerAnima = 0;
 function animaIngresso(el) {
   clearTimeout(timerAnima);
-  $('#vista-home').classList.remove('anima-vista');
-  $('#vista-giorno').classList.remove('anima-vista');
+  document.querySelectorAll('main > section[id^="vista-"]').forEach((v) => v.classList.remove('anima-vista'));
   void el.offsetWidth; // riavvia l'animazione se la classe era appena stata tolta
   el.classList.add('anima-vista');
   timerAnima = setTimeout(() => el.classList.remove('anima-vista'), 350);
@@ -780,7 +920,82 @@ function rendiSettimana() {
       '<div class="barra-ore barra-obiettivo"><div class="seg" style="width:' + pctS.toFixed(2) + '%;background:var(--disp)"></div></div>' +
     '</div>';
 
+  html += htmlTrend() + htmlStatistiche() + htmlReview() + htmlBackup();
   el.innerHTML = html;
+}
+
+function htmlTrend() {
+  const setts = trendSettimane();
+  let max = 0;
+  for (const s of setts) max = Math.max(max, s.inv, s.disp);
+  let colonne = '';
+  for (const s of setts) {
+    let barre = '';
+    if (max > 0) {
+      if (s.inv > 0) barre += '<div class="trend-barra" style="height:' + (s.inv / max * 100).toFixed(1) + '%;background:var(--inv)"></div>';
+      if (s.disp > 0) barre += '<div class="trend-barra" style="height:' + (s.disp / max * 100).toFixed(1) + '%;background:var(--disp)"></div>';
+    }
+    const eti = s.lunedi.getDate() + '/' + (s.lunedi.getMonth() + 1);
+    colonne += '<div class="trend-col"><div class="trend-area">' + barre + '</div><div class="trend-eti">' + eti + '</div></div>';
+  }
+  return '<div class="micro">Ultime 8 settimane</div>' +
+    '<div class="trend">' + colonne + '</div>' +
+    '<div class="legenda">' +
+      '<span><span class="pallino" style="background:var(--inv)"></span>Investimento</span>' +
+      '<span><span class="pallino" style="background:var(--disp)"></span>Dispersione</span>' +
+    '</div>';
+}
+
+function htmlStatistiche() {
+  const riga = (etichetta, valore) =>
+    '<div class="tot-riga"><span>' + etichetta + '</span><span class="durata">' + valore + '</span></div>';
+  const cost = costanzaMs();
+  const catStudio = stato.categorie.filter((c) => c.tipo === 'investimento')[0] || null;
+  const media = catStudio ? oraMediaInizioMin(catStudio.id) : null;
+  const sciv = statScivolato();
+  return '<div class="micro">Statistiche</div><div class="pannello">' +
+    riga('costanza', cost === null ? '&mdash;' : fmtDurata(cost)) +
+    riga('inizio medio' + (catStudio ? ' &middot; ' + esc(catStudio.nome) : ''), media === null ? '&mdash;' : fmtOreMinuti(media)) +
+    riga('fascia scivolato', sciv.fascia === null ? 'dati insufficienti' : (sciv.fascia * 2) + '&ndash;' + (sciv.fascia * 2 + 2)) +
+  '</div>';
+}
+
+function htmlReview() {
+  const cand = candidataReview();
+  const chiave = aInputData(cand);
+  const compilata = stato.reviews.some((r) => r.settimana === chiave);
+  if (compilata && stato.reviews.length === 0) return '';
+  let html = '';
+  const dom6 = new Date(cand.getFullYear(), cand.getMonth(), cand.getDate() + 6);
+  if (!compilata || stato.reviews.length > 0) html += '<div class="micro">Review</div>';
+  if (!compilata) {
+    html += '<div><button class="btn-piccolo" data-review-scrivi>Review &middot; ' +
+      esc(fmtDataBreve(cand)) + ' &ndash; ' + esc(fmtDataBreve(dom6)) + '</button></div>';
+  }
+  const ordinate = [...stato.reviews].sort((a, b) => (a.settimana < b.settimana ? 1 : -1));
+  for (const r of ordinate) {
+    const lun = new Date(r.settimana + 'T00:00');
+    const dom = new Date(lun.getFullYear(), lun.getMonth(), lun.getDate() + 6);
+    let campi = '';
+    const coppie = [
+      ['Cosa ha funzionato questa settimana', r.funzionato],
+      ['Cosa mi ha fatto scivolare', r.scivolare],
+      ['Una cosa sola che cambio la prossima settimana', r.cambio]
+    ];
+    for (const c of coppie) {
+      if (!c[1]) continue;
+      campi += '<div class="review-q">' + esc(c[0]) + '</div><div class="review-a">' + esc(c[1]) + '</div>';
+    }
+    html += '<div class="pannello review-card">' +
+      '<div class="review-range">' + esc(fmtDataBreve(lun)) + ' &ndash; ' + esc(fmtDataBreve(dom)) + '</div>' +
+      campi + '</div>';
+  }
+  return html;
+}
+
+function htmlBackup() {
+  const ub = stato.impostazioni.ultimoBackup;
+  return '<div class="riga-backup">ultimo backup: ' + (ub ? esc(fmtDataBreve(new Date(ub))) : 'mai') + '</div>';
 }
 
 /* ================= Modalità concentrazione ================= */
@@ -932,10 +1147,11 @@ function apriModaleModifica(idSessione) {
   m.querySelector('[data-annulla]').addEventListener('click', chiudiModale);
 
   m.querySelector('[data-c-elimina]').addEventListener('click', () => {
-    apriConferma('Eliminare questa sessione? L\'operazione non è annullabile.', () => {
+    apriConferma('Eliminare questa sessione?', () => {
       stato.sessioni = stato.sessioni.filter((x) => x.id !== s.id);
       salva();
       rendi();
+      mostraUndo(s);
     }, 'Elimina', () => apriModaleModifica(idSessione));
   });
 
@@ -1029,6 +1245,83 @@ function controllaTimerVecchio() {
   if (attiva && Date.now() - Date.parse(attiva.inizio) > SEI_ORE_MS) apriModaleVecchio(attiva);
 }
 
+function apriInfo(titolo, messaggio) {
+  const m = apriModale(
+    '<h2>' + esc(titolo) + '</h2>' +
+    '<p class="sotto-titolo">' + esc(messaggio) + '</p>' +
+    '<div class="riga-bottoni"><button class="btn btn-primario" data-ok>Ok</button></div>'
+  );
+  m.querySelector('[data-ok]').addEventListener('click', chiudiModale);
+}
+
+function apriModaleReview() {
+  const cand = candidataReview();
+  const chiave = aInputData(cand);
+  const dom6 = new Date(cand.getFullYear(), cand.getMonth(), cand.getDate() + 6);
+  const m = apriModale(
+    '<h2>Review</h2>' +
+    '<p class="sotto-titolo">' + esc(fmtDataBreve(cand)) + ' \u2013 ' + esc(fmtDataBreve(dom6)) + '</p>' +
+    '<div class="campo"><label>Cosa ha funzionato questa settimana</label><textarea rows="3" data-r-funzionato></textarea></div>' +
+    '<div class="campo"><label>Cosa mi ha fatto scivolare</label><textarea rows="3" data-r-scivolare></textarea></div>' +
+    '<div class="campo"><label>Una cosa sola che cambio la prossima settimana</label><textarea rows="3" data-r-cambio></textarea></div>' +
+    '<div class="riga-bottoni">' +
+      '<button class="btn btn-fantasma" data-annulla>Annulla</button>' +
+      '<button class="btn btn-primario" data-r-salva>Salva</button>' +
+    '</div>'
+  );
+  m.querySelector('[data-annulla]').addEventListener('click', chiudiModale);
+  m.querySelector('[data-r-salva]').addEventListener('click', () => {
+    const rec = {
+      settimana: chiave,
+      funzionato: m.querySelector('[data-r-funzionato]').value.trim(),
+      scivolare: m.querySelector('[data-r-scivolare]').value.trim(),
+      cambio: m.querySelector('[data-r-cambio]').value.trim()
+    };
+    stato.reviews = stato.reviews.filter((r) => r.settimana !== chiave);
+    stato.reviews.push(rec);
+    salva();
+    chiudiModale();
+    rendi();
+  });
+}
+
+/* ================= Undo eliminazione ================= */
+let undoSessione = null;
+let timerUndo = 0;
+
+function mostraUndo(sessione) {
+  undoSessione = sessione;
+  const el = $('#undo');
+  el.classList.remove('undo-uscita');
+  el.hidden = false;
+  clearTimeout(timerUndo);
+  timerUndo = setTimeout(nascondiUndo, 5000);
+}
+
+function nascondiUndo() {
+  clearTimeout(timerUndo);
+  undoSessione = null;
+  const el = $('#undo');
+  if (el.hidden) return;
+  el.classList.add('undo-uscita');
+  setTimeout(() => { el.hidden = true; el.classList.remove('undo-uscita'); }, 220);
+}
+
+function annullaEliminazione() {
+  if (!undoSessione) return;
+  const s = undoSessione;
+  const finMs = s.fine ? Date.parse(s.fine) : Date.now();
+  const conflitto = trovaSovrapposizione(Date.parse(s.inizio), finMs, s.id);
+  nascondiUndo();
+  if (conflitto) {
+    apriInfo('Impossibile annullare', 'Nel frattempo un\'altra sessione occupa quell\'intervallo: ' + messaggioConflitto(conflitto));
+    return;
+  }
+  stato.sessioni.push(s);
+  salva();
+  rendi();
+}
+
 /* ================= Impostazioni ================= */
 function apriModaleImpostazioni() {
   const m = apriModale('<h2>Impostazioni</h2><div data-imp-corpo></div>');
@@ -1076,7 +1369,12 @@ function rendiImpostazioni(corpo) {
   html +=
     '<div class="imp-riga"><button class="btn-piccolo" data-i-cat-aggiungi>+ Nuova categoria</button></div>' +
     '<div class="micro">Dati</div>' +
-    '<div class="imp-riga"><button class="btn-piccolo" data-i-esporta>Esporta dati (JSON)</button></div>' +
+    '<div class="imp-riga">' +
+      '<button class="btn-piccolo" data-i-esporta>Esporta dati (JSON)</button>' +
+      '<button class="btn-piccolo" data-i-esporta-csv>Esporta CSV</button>' +
+      '<button class="btn-piccolo" data-i-importa>Importa dati (JSON)</button>' +
+      '<input type="file" accept=".json,application/json" data-i-file hidden>' +
+    '</div>' +
     '<div class="riga-bottoni"><button class="btn btn-primario" data-i-chiudi>Chiudi</button></div>';
 
   corpo.innerHTML = html;
@@ -1117,6 +1415,14 @@ function attaccaEventiImpostazioni(corpo) {
         if (v) sub.nome = v; else t.value = sub.nome;
         salva();
       }
+    } else if (t.matches('[data-i-file]')) {
+      const file = t.files && t.files[0];
+      t.value = '';
+      if (!file) return;
+      const lettore = new FileReader();
+      lettore.onload = () => gestisciImport(String(lettore.result));
+      lettore.onerror = () => apriInfo('Importazione rifiutata', 'Impossibile leggere il file.');
+      lettore.readAsText(file);
     }
   });
 
@@ -1125,6 +1431,12 @@ function attaccaEventiImpostazioni(corpo) {
     if (!b) return;
     if (b.matches('[data-i-chiudi]')) { chiudiModale(); rendi(); return; }
     if (b.matches('[data-i-esporta]')) { esportaJson(); return; }
+    if (b.matches('[data-i-esporta-csv]')) { esportaCsv(); return; }
+    if (b.matches('[data-i-importa]')) {
+      const campo = corpo.querySelector('[data-i-file]');
+      if (campo) campo.click();
+      return;
+    }
     if (b.matches('[data-i-sub-aggiungi]')) {
       const catId = b.dataset.iSubAggiungi;
       const campo = corpo.querySelector('[data-i-sub-nuova="' + catId + '"]');
@@ -1199,6 +1511,97 @@ function scaricaFile(nome, contenuto, tipo) {
 
 function esportaJson() {
   scaricaFile('tempo-' + aInputData(new Date()) + '.json', JSON.stringify(stato, null, 2), 'application/json');
+  stato.impostazioni.ultimoBackup = new Date().toISOString();
+  salva();
+  rendi();
+}
+
+function csvCampo(v) {
+  v = String(v == null ? '' : v);
+  return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+
+function righeCsv() {
+  const righe = ['data,ora inizio,ora fine,durata minuti,categoria,sottocategoria,avvio,nota'];
+  const ordinate = [...stato.sessioni].sort((a, b) => Date.parse(a.inizio) - Date.parse(b.inizio));
+  for (const s of ordinate) {
+    const ini = new Date(s.inizio);
+    const fin = s.fine ? new Date(s.fine) : null;
+    const durata = Math.round(((fin ? fin.getTime() : Date.now()) - ini.getTime()) / 60000);
+    const cat = trovaCat(s.categoriaId);
+    const sub = s.sottocategoriaId ? trovaSub(s.sottocategoriaId) : null;
+    righe.push([
+      aInputData(ini), fmtOra(ini), fin ? fmtOra(fin) : '', durata,
+      cat ? cat.nome : '', sub ? sub.nome : '', s.avvio || '', s.nota || ''
+    ].map(csvCampo).join(','));
+  }
+  return righe.join('\r\n');
+}
+
+function esportaCsv() {
+  scaricaFile('tempo-sessioni-' + aInputData(new Date()) + '.csv', '\uFEFF' + righeCsv(), 'text/csv;charset=utf-8');
+}
+
+// Ritorna null se i dati sono importabili, altrimenti il motivo del rifiuto.
+function validaImport(dati) {
+  if (!dati || typeof dati !== 'object' || Array.isArray(dati)) return 'Il contenuto non \u00e8 un oggetto di dati.';
+  if (dati.schemaVersion !== 1 && dati.schemaVersion !== 2 && dati.schemaVersion !== 3) return 'schemaVersion mancante o non supportata (attese: 1, 2 o 3).';
+  if (!Array.isArray(dati.categorie)) return '"categorie" non \u00e8 un elenco.';
+  if (!Array.isArray(dati.sottocategorie)) return '"sottocategorie" non \u00e8 un elenco.';
+  if (!Array.isArray(dati.sessioni)) return '"sessioni" non \u00e8 un elenco.';
+  if (!dati.impostazioni || typeof dati.impostazioni !== 'object') return '"impostazioni" mancante.';
+  const idCat = new Set();
+  for (let i = 0; i < dati.categorie.length; i++) {
+    const c = dati.categorie[i];
+    if (!c || !c.id || !c.nome) return 'categoria ' + (i + 1) + ': manca id o nome.';
+    if (c.tipo !== 'investimento' && c.tipo !== 'dispersione') return 'categoria "' + c.nome + '": tipo non valido.';
+    idCat.add(c.id);
+  }
+  const idSub = new Set();
+  for (let i = 0; i < dati.sottocategorie.length; i++) {
+    const sc = dati.sottocategorie[i];
+    if (!sc || !sc.id || !sc.nome) return 'sottocategoria ' + (i + 1) + ': manca id o nome.';
+    if (!idCat.has(sc.categoriaId)) return 'sottocategoria "' + sc.nome + '": categoria inesistente.';
+    idSub.add(sc.id);
+  }
+  for (let i = 0; i < dati.sessioni.length; i++) {
+    const s = dati.sessioni[i];
+    if (!s || !s.id) return 'sessione ' + (i + 1) + ': manca id.';
+    const ini = Date.parse(s.inizio);
+    if (isNaN(ini)) return 'sessione ' + (i + 1) + ': inizio non valido.';
+    if (s.fine != null) {
+      const fin = Date.parse(s.fine);
+      if (isNaN(fin)) return 'sessione ' + (i + 1) + ': fine non valida.';
+      if (fin <= ini) return 'sessione ' + (i + 1) + ': fine non successiva all\'inizio.';
+    }
+    if (!idCat.has(s.categoriaId)) return 'sessione ' + (i + 1) + ': categoria inesistente.';
+    if (s.sottocategoriaId != null && !idSub.has(s.sottocategoriaId)) return 'sessione ' + (i + 1) + ': sottocategoria inesistente.';
+    if (s.avvio != null && s.avvio !== 'deciso' && s.avvio !== 'scivolato') return 'sessione ' + (i + 1) + ': avvio non valido.';
+  }
+  if (dati.reviews !== undefined && !Array.isArray(dati.reviews)) return '"reviews" non \u00e8 un elenco.';
+  return null;
+}
+
+function gestisciImport(testo) {
+  let dati = null;
+  try {
+    dati = JSON.parse(testo);
+  } catch (err) {
+    apriInfo('Importazione rifiutata', 'Il file non \u00e8 JSON valido: ' + err.message + '. I dati attuali non sono stati toccati.');
+    return;
+  }
+  const errore = validaImport(dati);
+  if (errore) {
+    apriInfo('Importazione rifiutata', errore + ' I dati attuali non sono stati toccati.');
+    return;
+  }
+  apriConferma('Sostituire i dati attuali (' + stato.sessioni.length + ' sessioni) con quelli del file (' + dati.sessioni.length + ' sessioni)?', () => {
+    migra(dati);
+    stato = dati;
+    salva();
+    rendi();
+    apriInfo('Importazione completata', 'Sessioni caricate: ' + stato.sessioni.length + '.');
+  }, 'Sostituisci', apriModaleImpostazioni);
 }
 
 function mostraRecupero(grezzo) {
@@ -1222,10 +1625,119 @@ function mostraRecupero(grezzo) {
   });
 }
 
+/* ================= Schermata di attrito ================= */
+// L'app apre questa schermata SOLO se l'URL contiene ?trigger=<id> e quella
+// categoria è di tipo dispersione. In ogni altro caso funziona identica.
+function leggiTrigger() {
+  try {
+    const id = new URLSearchParams(location.search).get('trigger');
+    if (!id) return null;
+    const cat = trovaCat(id);
+    return (cat && cat.tipo === 'dispersione') ? cat : null;
+  } catch (err) { return null; }
+}
+
+function pulisciTrigger() {
+  try {
+    const u = new URL(location.href);
+    if (!u.searchParams.has('trigger')) return;
+    u.searchParams.delete('trigger');
+    const coda = u.searchParams.toString();
+    history.replaceState(null, '', u.pathname + (coda ? '?' + coda : '') + u.hash);
+  } catch (err) {}
+}
+
+let timerConto = 0;
+function apriAttrito(cat) {
+  const el = $('#attrito');
+  const imp = stato.impostazioni;
+  const rif = new Date();
+  const nSett = settimanaDelPercorso(rif);
+  const tot = totaliSettimana(rif);
+
+  let righe = '';
+  const catObiettivo = stato.categorie.filter((c) => c.tipo === 'investimento').slice(0, 2);
+  const chiavi = ['studio', 'crescita'];
+  catObiettivo.forEach((c, i) => {
+    const ore = targetPerSettimana(nSett, chiavi[i]);
+    const x = tot.perCategoria.get(c.id) || 0;
+    const mancano = Math.max(0, ore * 3600000 - x);
+    righe +=
+      '<div class="tot-riga">' +
+        '<span class="pallino" style="background:' + esc(c.colore) + '"></span>' +
+        '<span>' + esc(c.nome) + '</span>' +
+        '<span class="durata">' + fmtDurata(x) + ' di ' + ore + ' ore · mancano ' + fmtDurata(mancano) + '</span>' +
+      '</div>';
+  });
+  const tetto = Number(imp.tettoScivolato) || 0;
+  righe +=
+    '<div class="tot-riga">' +
+      '<span class="pallino" style="background:var(--disp)"></span>' +
+      '<span>Dispersione scivolata</span>' +
+      '<span class="durata">' + fmtDurata(tot.scivolato) + ' · tetto ' + tetto + ' ore</span>' +
+    '</div>';
+
+  el.innerHTML =
+    '<div class="scatola">' +
+      '<div class="attrito-cat"><span class="pallino" style="background:' + esc(cat.colore) + '"></span><span>' + esc(cat.nome) + '</span></div>' +
+      '<div class="micro">Questa settimana</div>' +
+      '<div class="pannello">' + righe + '</div>' +
+      '<div class="attrito-azioni">' +
+        '<button class="btn btn-fantasma" data-a-vai disabled>Vai comunque <span data-conto>(5)</span></button>' +
+        '<button class="btn btn-primario" data-a-lascia>Lascia stare</button>' +
+      '</div>' +
+    '</div>';
+  el.hidden = false;
+
+  const btnVai = el.querySelector('[data-a-vai]');
+  let resto = 5;
+  clearInterval(timerConto);
+  timerConto = setInterval(() => {
+    resto--;
+    const conto = el.querySelector('[data-conto]');
+    if (resto <= 0) {
+      clearInterval(timerConto);
+      if (conto) conto.remove();
+      btnVai.disabled = false;
+    } else if (conto) {
+      conto.textContent = '(' + resto + ')';
+    }
+  }, 1000);
+
+  btnVai.addEventListener('click', () => {
+    if (btnVai.disabled) return;
+    clearInterval(timerConto);
+    pulisciTrigger();
+    avviaSessione(cat.id, null, 'scivolato');
+    chiudiApp();
+  });
+  el.querySelector('[data-a-lascia]').addEventListener('click', () => {
+    clearInterval(timerConto);
+    pulisciTrigger();
+    el.hidden = true;
+    el.innerHTML = '';
+    vistaCorrente = 'home'; // richiesto esplicitamente: "Lascia stare" porta alla home
+    rendi();
+    animaIngresso($('#vista-home'));
+    controllaTimerVecchio();
+  });
+}
+
+function chiudiApp() {
+  // window.close funziona per le finestre aperte da script e per alcune PWA
+  // installate; se il browser lo impedisce resta una schermata minimale.
+  try { window.close(); } catch (err) {}
+  setTimeout(() => {
+    const el = $('#attrito');
+    el.innerHTML = '<div class="attrito-chiusa">Timer avviato · puoi chiudere questa scheda</div>';
+    el.hidden = false;
+  }, 150);
+}
+
 /* ================= Eventi globali e avvio ================= */
 function attaccaEventi() {
   document.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-avvia],[data-stop],[data-focus-apri],[data-focus-chiudi],[data-modifica],[data-vista],[data-impostazioni],[data-giorno-delta],[data-giorno-oggi]');
+    const b = e.target.closest('[data-avvia],[data-stop],[data-focus-apri],[data-focus-chiudi],[data-modifica],[data-vista],[data-impostazioni],[data-giorno-delta],[data-giorno-oggi],[data-review-scrivi],[data-undo-annulla]');
     if (!b) return;
     if (b.dataset.avvia !== undefined) {
       const parti = b.dataset.avvia.split('|');
@@ -1254,6 +1766,10 @@ function attaccaEventi() {
       giornoVista = new Date();
       rendiGiorno();
       animaIngresso($('#vista-giorno'));
+    } else if (b.dataset.reviewScrivi !== undefined) {
+      apriModaleReview();
+    } else if (b.dataset.undoAnnulla !== undefined) {
+      annullaEliminazione();
     }
   });
 
@@ -1299,9 +1815,12 @@ function init() {
   attaccaEventi();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   rendi();
-  animaIngresso($('#vista-home'));
-  controllaTimerVecchio();
   setInterval(tick, 1000);
+  const trigger = leggiTrigger();
+  if (trigger) { apriAttrito(trigger); return; }
+  pulisciTrigger(); // rimuove un eventuale parametro non valido, senza schermata
+  animaIngresso($('#vista-' + vistaCorrente));
+  controllaTimerVecchio();
 }
 
 init();

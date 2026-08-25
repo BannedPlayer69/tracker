@@ -2,7 +2,7 @@
 // prima dalla cache, aggiornandola in background quando c'è rete.
 // Dopo un deploy con modifiche, incrementare il numero di versione qui sotto
 // per forzare il ricaricamento immediato di tutti i file.
-const CACHE = 'tt-cache-v3';
+const CACHE = 'tt-cache-v5';
 const FILE = ['./', './index.html', './manifest.json', './sw.js'];
 
 self.addEventListener('install', (e) => {
